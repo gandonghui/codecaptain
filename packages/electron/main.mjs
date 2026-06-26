@@ -1126,6 +1126,28 @@ const inheritUserShellEnv = () => {
   }
 };
 
+// Point opencode resolution at the binary bundled in the installer
+// (resources/opencode/opencode[.exe]) when one is present. resolveOpencodeCliPath
+// in the web server checks OPENCHAMBER_OPENCODE_BIN before PATH/fallbacks, so this
+// makes packaged builds self-contained while still deferring to any user override.
+const applyBundledOpencodeBinary = () => {
+  // Respect an explicit user/env choice — never override it.
+  for (const key of ['OPENCODE_BINARY', 'OPENCODE_PATH', 'OPENCHAMBER_OPENCODE_PATH', 'OPENCHAMBER_OPENCODE_BIN']) {
+    if (typeof process.env[key] === 'string' && process.env[key].trim()) return;
+  }
+
+  const binName = process.platform === 'win32' ? 'opencode.exe' : 'opencode';
+  const bundled = path.join(resourceRoot(), 'opencode', binName);
+  try {
+    if (fs.existsSync(bundled)) {
+      process.env.OPENCHAMBER_OPENCODE_BIN = bundled;
+      log.info(`[desktop] Using bundled opencode CLI: ${bundled}`);
+    }
+  } catch (error) {
+    log.warn(`[desktop] Failed to probe bundled opencode CLI at ${bundled}: ${error?.message || error}`);
+  }
+};
+
 const spawnLocalServer = async () => {
   inheritUserShellEnv();
 
@@ -1186,6 +1208,13 @@ const spawnLocalServer = async () => {
   process.env.OPENCHAMBER_SKIP_API_COMPRESSION = process.env.OPENCHAMBER_SKIP_API_COMPRESSION || 'true';
   process.env.NO_PROXY = process.env.NO_PROXY || 'localhost,127.0.0.1';
   process.env.no_proxy = process.env.no_proxy || 'localhost,127.0.0.1';
+
+  // Use the opencode CLI bundled inside the installer (resources/opencode) when
+  // present, so packaged desktop works fully offline / out-of-the-box without a
+  // separately installed opencode on PATH. A user-configured binary (settings or
+  // OPENCODE_BINARY / OPENCHAMBER_OPENCODE_BIN env) always wins — we only fill the
+  // gap when nothing else is set.
+  applyBundledOpencodeBinary();
 
   const { startWebUiServer } = await import('@openchamber/web/server/index.js');
 

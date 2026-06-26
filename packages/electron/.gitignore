@@ -9,5 +9,9 @@ dist-bundle/
 resources/web-dist/
 resources/sidecar/
 
+# Vendored opencode CLI binary (large, platform-specific) — keep the README only
+resources/opencode/*
+!resources/opencode/README.md
+
 # OS-specific
 .DS_Store
