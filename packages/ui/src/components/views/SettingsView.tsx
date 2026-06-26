@@ -34,9 +34,9 @@ import { MagicPromptsPage } from '@/components/sections/magic-prompts/MagicPromp
 import { SnippetsSidebar } from '@/components/sections/snippets/SnippetsSidebar';
 import { SnippetsPage } from '@/components/sections/snippets/SnippetsPage';
 import { GitPage } from '@/components/sections/git-identities/GitPage';
-import type { OpenChamberSection } from '@/components/sections/openchamber/types';
-import { OpenChamberPage } from '@/components/sections/openchamber/OpenChamberPage';
-import { AboutSettings } from '@/components/sections/openchamber/AboutSettings';
+import type { CodeCaptainSection } from '@/components/sections/codecaptain/types';
+import { CodeCaptainPage } from '@/components/sections/codecaptain/CodeCaptainPage';
+import { AboutSettings } from '@/components/sections/codecaptain/AboutSettings';
 import { useDeviceInfo } from '@/lib/device';
 import { isDesktopLocalOriginActive, isDesktopShell, isVSCodeRuntime, isWebRuntime } from '@/lib/desktop';
 import { useI18n } from '@/lib/i18n';
@@ -58,7 +58,7 @@ import { buildSettingsSearchResults, type SettingsSearchResult } from '@/lib/set
 const SETTINGS_NAV_MIN_WIDTH = 176;
 const SETTINGS_NAV_MAX_WIDTH = 280;
 const SETTINGS_NAV_RESIZE_STEP = 8;
-const SETTINGS_DETAIL_HISTORY_KEY = '__openchamberSettingsDetail';
+const SETTINGS_DETAIL_HISTORY_KEY = '__codecaptainSettingsDetail';
 
 function clampSettingsNavWidth(width: number): number {
   return Math.min(SETTINGS_NAV_MAX_WIDTH, Math.max(SETTINGS_NAV_MIN_WIDTH, width));
@@ -467,7 +467,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
 
   // Nav is always open (collapsed state removed)
 
-  const openChamberSectionBySlug: Partial<Record<SettingsPageSlug, OpenChamberSection>> = React.useMemo(() => ({
+  const openChamberSectionBySlug: Partial<Record<SettingsPageSlug, CodeCaptainSection>> = React.useMemo(() => ({
     appearance: 'visual',
     chat: 'chat',
     shortcuts: 'shortcuts',
@@ -651,7 +651,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
     }
     if (result.id === 'plugins.create' && typeof window !== 'undefined') {
       window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('openchamber:settings-open-plugin-add'));
+        window.dispatchEvent(new CustomEvent('codecaptain:settings-open-plugin-add'));
       }, 50);
     }
   }, [isMobile, openPage, prepareSettingsSearchTarget]);
@@ -812,7 +812,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
       case 'voice':
       case 'tunnel': {
         const section = openChamberSectionBySlug[slug] ?? 'visual';
-        return <OpenChamberPage section={section} />;
+        return <CodeCaptainPage section={section} />;
       }
       default:
         return <SettingsHome onOpen={openPage} />;
@@ -1053,7 +1053,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
                       'text-sm font-semibold text-sidebar-foreground/90',
                       'hover:text-sidebar-foreground hover:bg-interactive-hover',
                     )}
-                    onClick={() => void reloadOpenCodeConfiguration({ message: 'Restarting OpenCode…', mode: 'projects', scopes: ['all'] }).catch(() => undefined)}
+                    onClick={() => void reloadOpenCodeConfiguration({ message: 'Restarting CodeCaptain-core…', mode: 'projects', scopes: ['all'] }).catch(() => undefined)}
                   >
                     <Icon name="restart" className="h-4 w-4 shrink-0" />
                     <span>{t('settings.view.actions.reloadOpenCode')}</span>

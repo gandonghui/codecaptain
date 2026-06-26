@@ -59,7 +59,7 @@ describe('session folders routes', () => {
     registerSessionFoldersRoutes(app, {
       fsPromises,
       path,
-      openchamberDataDir: '/tmp/openchamber-test',
+      codecaptainDataDir: '/tmp/codecaptain-test',
     });
 
     const handler = getRoute('POST', '/api/session-folders');
@@ -88,7 +88,7 @@ describe('session folders routes', () => {
     registerSessionFoldersRoutes(app, {
       fsPromises,
       path,
-      openchamberDataDir: '/tmp/openchamber-test',
+      codecaptainDataDir: '/tmp/codecaptain-test',
     });
 
     const handler = getRoute('POST', '/api/session-folders');

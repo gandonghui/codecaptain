@@ -6,14 +6,14 @@ export const createBootstrapRuntime = (dependencies) => {
     registerAuthAndAccessRoutes,
     registerTtsRoutes,
     registerNotificationRoutes,
-    registerOpenChamberRoutes,
+    registerCodeCaptainRoutes,
     express,
   } = dependencies;
 
   const setupBaseRoutes = (app, options) => {
     const {
       process,
-      openchamberVersion,
+      codecaptainVersion,
       runtimeName,
       serverStartedAt,
       gracefulShutdown,
@@ -43,7 +43,7 @@ export const createBootstrapRuntime = (dependencies) => {
       path,
       server,
       __dirname,
-      openchamberDataDir,
+      codecaptainDataDir,
       modelsDevApiUrl,
       modelsMetadataCacheTtl,
       fetchFreeZenModels,
@@ -63,7 +63,7 @@ export const createBootstrapRuntime = (dependencies) => {
     registerServerStatusRoutes(app, {
       express,
       process,
-      openchamberVersion,
+      codecaptainVersion,
       runtimeName,
       serverStartedAt,
       gracefulShutdown,
@@ -111,14 +111,14 @@ export const createBootstrapRuntime = (dependencies) => {
       setAutoAcceptSession,
     });
 
-    registerOpenChamberRoutes(app, {
+    registerCodeCaptainRoutes(app, {
       fs,
       os,
       path,
       process,
       server,
       __dirname,
-      openchamberDataDir,
+      codecaptainDataDir,
       modelsDevApiUrl,
       modelsMetadataCacheTtl,
       readSettingsFromDiskMigrated,

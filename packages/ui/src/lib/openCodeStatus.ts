@@ -14,7 +14,7 @@ type ProbeResult = {
   summary: string;
 };
 
-type OpenChamberHealthSnapshot = {
+type CodeCaptainHealthSnapshot = {
   openCodePort?: unknown;
   openCodeRunning?: unknown;
   openCodeSecureConnection?: unknown;
@@ -31,7 +31,7 @@ type OpenChamberHealthSnapshot = {
   bunBinaryResolved?: unknown;
 };
 
-type OpenChamberOpencodeResolution = {
+type CodeCaptainOpencodeResolution = {
   configured?: unknown;
   resolved?: unknown;
   resolvedDir?: unknown;
@@ -159,7 +159,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
   const healthUrl = urls.health();
   const apiBase = urls.api('/api/');
 
-  const openChamberHealth: OpenChamberHealthSnapshot | null = await (async () => {
+  const openChamberHealth: CodeCaptainHealthSnapshot | null = await (async () => {
     if (!healthUrl) return null;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
@@ -172,7 +172,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
       if (!resp.ok) return null;
       const json = (await resp.json().catch(() => null)) as unknown;
       if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
-      return json as OpenChamberHealthSnapshot;
+      return json as CodeCaptainHealthSnapshot;
     } catch {
       return null;
     } finally {
@@ -181,7 +181,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
   })();
 
   const openChamberOpencodeResolutionResult: {
-    data: OpenChamberOpencodeResolution | null;
+    data: CodeCaptainOpencodeResolution | null;
     status: number | null;
     error: string | null;
   } = await (async () => {
@@ -213,7 +213,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
       if (!json || typeof json !== 'object' || Array.isArray(json)) {
         return { data: null, status: resp.status, error: `invalid json-shape content-type=${contentType}` };
       }
-      return { data: json as OpenChamberOpencodeResolution, status: resp.status, error: null };
+      return { data: json as CodeCaptainOpencodeResolution, status: resp.status, error: null };
     } catch (error) {
       return {
         data: null,
@@ -259,7 +259,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
 
   const lines: string[] = [];
   lines.push(`Time: ${now.toISOString()}`);
-  lines.push(`OpenChamber version: ${appVersion}`);
+  lines.push(`CodeCaptain version: ${appVersion}`);
   lines.push(`Runtime: ${origin || '(unknown)'} (api=${apiBase || '(unknown)'})`);
   lines.push(`OpenCode SDK base: ${opencodeClient.getBaseUrl()}`);
   lines.push(`Event stream: ${eventStreamStatus}`);
@@ -279,7 +279,7 @@ export const buildOpenCodeStatusReport = async (): Promise<string> => {
   }
 
   if (typeof window !== 'undefined') {
-    const injected = (window as unknown as { __OPENCHAMBER_MACOS_MAJOR__?: unknown }).__OPENCHAMBER_MACOS_MAJOR__;
+    const injected = (window as unknown as { __CODECAPTAIN_MACOS_MAJOR__?: unknown }).__CODECAPTAIN_MACOS_MAJOR__;
     if (typeof injected === 'number' && Number.isFinite(injected) && injected > 0) {
       lines.push(`macOS major: ${injected}`);
     }

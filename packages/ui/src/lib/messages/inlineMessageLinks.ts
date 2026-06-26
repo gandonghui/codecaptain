@@ -1,5 +1,5 @@
-export const SKILL_LINK_PREFIX = '#openchamber-skill:';
-export const AGENT_LINK_PREFIX = '#openchamber-agent:';
+export const SKILL_LINK_PREFIX = '#codecaptain-skill:';
+export const AGENT_LINK_PREFIX = '#codecaptain-agent:';
 
 export const buildAgentMentionUrl = (name: string): string => {
     const encoded = encodeURIComponent(name);

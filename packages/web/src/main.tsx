@@ -1,20 +1,20 @@
 import { createConfiguredWebAPIs } from './runtimeConfig';
 import { registerSW } from 'virtual:pwa-register';
 
-import type { RuntimeAPIs } from '@openchamber/ui/lib/api/types';
-import { getStoredMobileLayoutPreference } from '@openchamber/ui/lib/mobileLayoutPreference';
-import type { HostedSurface } from '@openchamber/ui/lib/runtimeSurface';
-import '@openchamber/ui/index.css';
-import '@openchamber/ui/styles/fonts';
+import type { RuntimeAPIs } from '@codecaptain/ui/lib/api/types';
+import { getStoredMobileLayoutPreference } from '@codecaptain/ui/lib/mobileLayoutPreference';
+import type { HostedSurface } from '@codecaptain/ui/lib/runtimeSurface';
+import '@codecaptain/ui/index.css';
+import '@codecaptain/ui/styles/fonts';
 
 declare global {
   interface Window {
-    __OPENCHAMBER_RUNTIME_APIS__?: RuntimeAPIs;
-    __OPENCHAMBER_SURFACE__?: HostedSurface;
+    __CODECAPTAIN_RUNTIME_APIS__?: RuntimeAPIs;
+    __CODECAPTAIN_SURFACE__?: HostedSurface;
   }
 }
 
-window.__OPENCHAMBER_RUNTIME_APIS__ = createConfiguredWebAPIs();
+window.__CODECAPTAIN_RUNTIME_APIS__ = createConfiguredWebAPIs();
 
 const isCoarsePointer = (): boolean => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -37,7 +37,7 @@ const detectHostedSurface = (): HostedSurface => {
 };
 
 const hostedSurface = detectHostedSurface();
-window.__OPENCHAMBER_SURFACE__ = hostedSurface;
+window.__CODECAPTAIN_SURFACE__ = hostedSurface;
 
 type PrerenderingDocument = Document & {
   prerendering?: boolean;
@@ -105,12 +105,12 @@ const unregisterDevelopmentServiceWorkers = (): void => {
 };
 
 if (hostedSurface === 'mobile') {
-  void import('@openchamber/ui/apps/renderMobileApp')
+  void import('@codecaptain/ui/apps/renderMobileApp')
     .then(({ renderMobileApp }) => {
-      renderMobileApp(window.__OPENCHAMBER_RUNTIME_APIS__ ?? createConfiguredWebAPIs());
+      renderMobileApp(window.__CODECAPTAIN_RUNTIME_APIS__ ?? createConfiguredWebAPIs());
     });
 } else {
-  void import('@openchamber/ui/main');
+  void import('@codecaptain/ui/main');
 }
 
 if (import.meta.env.PROD) {

@@ -1,4 +1,4 @@
-const STREAM_PERF_STORAGE_KEY = 'openchamber_stream_perf';
+const STREAM_PERF_STORAGE_KEY = 'codecaptain_stream_perf';
 
 type PerfCounter = {
   count: number;
@@ -15,7 +15,7 @@ type StreamPerfState = {
 
 declare global {
   interface Window {
-    __openchamberVsCodeStreamPerfState__?: StreamPerfState;
+    __codecaptainVsCodeStreamPerfState__?: StreamPerfState;
   }
 }
 
@@ -39,16 +39,16 @@ const ensurePerfState = (): StreamPerfState | null => {
     return null;
   }
 
-  if (!window.__openchamberVsCodeStreamPerfState__) {
+  if (!window.__codecaptainVsCodeStreamPerfState__) {
     const startedAt = Date.now();
-    window.__openchamberVsCodeStreamPerfState__ = {
+    window.__codecaptainVsCodeStreamPerfState__ = {
       counters: new Map<string, PerfCounter>(),
       startedAt,
       lastUpdatedAt: startedAt,
     };
   }
 
-  return window.__openchamberVsCodeStreamPerfState__;
+  return window.__codecaptainVsCodeStreamPerfState__;
 };
 
 const updateCounter = (metric: string, amount: number): void => {

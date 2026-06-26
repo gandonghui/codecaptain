@@ -36,7 +36,7 @@ export const TitlebarLeftControls: React.FC = () => {
     if (typeof window === 'undefined') {
       return false;
     }
-    return Boolean(window.__OPENCHAMBER_ELECTRON__) && window.__OPENCHAMBER_PLATFORM__ === 'win32';
+    return Boolean(window.__CODECAPTAIN_ELECTRON__) && window.__CODECAPTAIN_PLATFORM__ === 'win32';
   }, []);
 
   const handleOpenWindowsAppMenu = React.useCallback((event: React.MouseEvent<HTMLButtonElement>) => {

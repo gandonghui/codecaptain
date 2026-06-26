@@ -1,26 +1,26 @@
 ---
-title: Połączenie z OpenCode
-description: Napraw brak połączenia OpenChamber z serwerem OpenCode.
+title: Połączenie z CodeCaptain-core
+description: Napraw brak połączenia CodeCaptain z serwerem CodeCaptain-core.
 ---
 
-# Połączenie z OpenCode
+# Połączenie z CodeCaptain-core
 
-Jeśli OpenChamber się ładuje, ale nigdy nie przechodzi poza „OpenCode uruchamia się ponownie”, albo czat nie odpowiada, serwer, z którym się komunikuje, jest nieosiągalny. Przejdź przez te kroki.
+Jeśli CodeCaptain się ładuje, ale nigdy nie przechodzi poza „CodeCaptain-core uruchamia się ponownie”, albo czat nie odpowiada, serwer, z którym się komunikuje, jest nieosiągalny. Przejdź przez te kroki.
 
-## Utknął na „OpenCode uruchamia się ponownie”
+## Utknął na „CodeCaptain-core uruchamia się ponownie”
 
 - daj mu chwilę tuż po uruchomieniu — ten stan jest normalny, gdy serwer startuje
-- sprawdź, czy serwer żyje, za pomocą `openchamber status`
-- zrestartuj go za pomocą `openchamber restart`
-- zobacz szczegóły startu za pomocą `openchamber logs`
+- sprawdź, czy serwer żyje, za pomocą `codecaptain status`
+- zrestartuj go za pomocą `codecaptain restart`
+- zobacz szczegóły startu za pomocą `codecaptain logs`
 
 ## Łączysz się z własnym serwerem
 
-Jeśli ustawiłeś OpenChamber tak, aby używał istniejącego serwera, sprawdź ponownie konfigurację z [OpenCode Server](/pl/opencode-server/):
+Jeśli ustawiłeś CodeCaptain tak, aby używał istniejącego serwera, sprawdź ponownie konfigurację z [CodeCaptain-core Server](/pl/opencode-server/):
 
 - `OPENCODE_HOST` musi zawierać port, bez ścieżki — na przykład `http://localhost:4096`
-- ustaw `OPENCODE_SKIP_START=true`, aby OpenChamber nie uruchamiał też własnego
-- jeśli adres jest nieprawidłowy, OpenChamber go ignoruje i uruchamia własny serwer — poszukaj ostrzeżenia `[config]` w logach
+- ustaw `OPENCODE_SKIP_START=true`, aby CodeCaptain nie uruchamiał też własnego
+- jeśli adres jest nieprawidłowy, CodeCaptain go ignoruje i uruchamia własny serwer — poszukaj ostrzeżenia `[config]` w logach
 
 ## Nadal nie działa
 
@@ -30,5 +30,5 @@ Jeśli ustawiłeś OpenChamber tak, aby używał istniejącego serwera, sprawdź
 
 ## Powiązane
 
-- [OpenCode Server](/pl/opencode-server/) — jak OpenChamber znajduje serwer i nim zarządza
+- [CodeCaptain-core Server](/pl/opencode-server/) — jak CodeCaptain znajduje serwer i nim zarządza
 - [Rozwiązywanie problemów](/pl/troubleshooting/) — inne częste problemy

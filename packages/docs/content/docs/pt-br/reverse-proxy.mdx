@@ -1,15 +1,15 @@
 ---
 title: Proxy reverso
-description: Configure o OpenChamber corretamente atrás do Nginx, Nginx Proxy Manager ou outro proxy reverso.
+description: Configure o CodeCaptain corretamente atrás do Nginx, Nginx Proxy Manager ou outro proxy reverso.
 ---
 
 # Proxy reverso
 
-Use esta página se você executa o OpenChamber atrás do Nginx, Nginx Proxy Manager, Caddy, Cloudflare ou outro proxy reverso.
+Use esta página se você executa o CodeCaptain atrás do Nginx, Nginx Proxy Manager, Caddy, Cloudflare ou outro proxy reverso.
 
 ## Antes de colocar um proxy
 
-1. Primeiro confirme que o OpenChamber funciona diretamente.
+1. Primeiro confirme que o CodeCaptain funciona diretamente.
 2. Abra `http://<server-ip>:3000` ou sua porta personalizada a partir da mesma rede.
 3. Adicione o proxy reverso somente depois que a conexão direta funcionar.
 
@@ -23,7 +23,7 @@ Use esta página se você executa o OpenChamber atrás do Nginx, Nginx Proxy Man
   - `/api/event`
   - `/api/global/event`
   - `/api/notifications/stream`
-  - `/api/openchamber/events`
+  - `/api/codecaptain/events`
   - `/api/terminal/:sessionId/stream`
 - Corpos de requisição grandes para anexos e operações de arquivo
 - Tempos de leitura longos para streams ao vivo e sessões de terminal
@@ -32,14 +32,14 @@ Use esta página se você executa o OpenChamber atrás do Nginx, Nginx Proxy Man
 
 - Habilite o proxy de WebSockets.
 - Desative o buffer nas rotas SSE.
-- Desative o gzip no proxy se o OpenChamber já comprime as respostas.
+- Desative o gzip no proxy se o CodeCaptain já comprime as respostas.
 - Mantenha a compressão ativada em apenas uma camada.
 - Encaminhe os cabeçalhos de proxy normais, como `Host`, `X-Forwarded-For` e `X-Forwarded-Proto`.
 - Aumente os limites de tamanho do corpo se os usuários enviarem arquivos.
 
 ## Checklist rápido
 
-- OpenChamber acessível diretamente na LAN
+- CodeCaptain acessível diretamente na LAN
 - WebSockets habilitados no proxy
 - rotas SSE com buffer desativado
 - `gzip off` no host do proxy, ou compressão do proxy desativada de outra forma
@@ -96,7 +96,7 @@ location = /api/event/ws {
     proxy_send_timeout 3600s;
 }
 
-location ~ ^/api/(event|global/event|notifications/stream|openchamber/events)$ {
+location ~ ^/api/(event|global/event|notifications/stream|codecaptain/events)$ {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -230,7 +230,7 @@ location = /api/notifications/stream {
     proxy_connect_timeout 30s;
 }
 
-location = /api/openchamber/events {
+location = /api/codecaptain/events {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -329,7 +329,7 @@ O Caddy lida com os upgrades de WebSocket automaticamente — nenhuma configura�
 
 Se você colocar uma CDN (como a Cloudflare) na frente do seu proxy reverso, fique atento à dupla compressão:
 
-- O OpenChamber comprime as respostas HTTP com gzip (limite de 1 KB).
+- O CodeCaptain comprime as respostas HTTP com gzip (limite de 1 KB).
 - A Cloudflare e outras CDNs também comprimem as respostas por padrão.
 - Isso pode causar respostas duplamente comprimidas ou cabeçalhos `Content-Encoding` incorretos.
 
@@ -339,7 +339,7 @@ Para evitar isso, desative a compressão em **uma** camada:
 - **Nginx:** `gzip off` (já mostrado nos exemplos acima).
 - **Caddy:** o Caddy não recomprime por padrão se o upstream já envia conteúdo comprimido.
 
-As rotas de streaming SSE são excluídas da compressão pelo OpenChamber, mas a CDN ainda pode armazená-las em buffer. Consulte a documentação da sua CDN sobre como desativar o buffer nas rotas SSE.
+As rotas de streaming SSE são excluídas da compressão pelo CodeCaptain, mas a CDN ainda pode armazená-las em buffer. Consulte a documentação da sua CDN sobre como desativar o buffer nas rotas SSE.
 
 ## Relacionado
 

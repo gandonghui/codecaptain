@@ -299,11 +299,11 @@ export interface SessionStore {
     getAgentModelVariantForSession: (sessionId: string, agentName: string, providerId: string, modelId: string) => string | undefined;
 
 
-    isOpenChamberCreatedSession: (sessionId: string) => boolean;
+    isCodeCaptainCreatedSession: (sessionId: string) => boolean;
 
-    markSessionAsOpenChamberCreated: (sessionId: string) => void;
+    markSessionAsCodeCaptainCreated: (sessionId: string) => void;
 
-    initializeNewOpenChamberSession: (sessionId: string, agents: Array<{ name: string; [key: string]: unknown }>) => void;
+    initializeNewCodeCaptainSession: (sessionId: string, agents: Array<{ name: string; [key: string]: unknown }>) => void;
 
     setWorktreeMetadata: (sessionId: string, metadata: import('@/types/worktree').WorktreeMetadata | null) => void;
     getWorktreeMetadata: (sessionId: string) => import('@/types/worktree').WorktreeMetadata | undefined;

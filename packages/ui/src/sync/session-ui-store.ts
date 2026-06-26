@@ -251,10 +251,10 @@ export type SessionUIState = {
   clearAbortPrompt: () => void
   armAbortPrompt: (durationMs?: number) => number | null
   clearError: () => void
-  markSessionAsOpenChamberCreated: (sessionId: string) => void
-  isOpenChamberCreatedSession: (sessionId: string) => boolean
+  markSessionAsCodeCaptainCreated: (sessionId: string) => void
+  isCodeCaptainCreatedSession: (sessionId: string) => boolean
   getContextUsage: (contextLimit: number, outputLimit: number) => SessionContextUsage | null
-  initializeNewOpenChamberSession: (sessionId: string, agents: unknown[]) => void
+  initializeNewCodeCaptainSession: (sessionId: string, agents: unknown[]) => void
   setWorktreeMetadata: (sessionId: string, metadata: WorktreeMetadata | null) => void
   overrideNewSessionDraftTarget: (options: Record<string, unknown>) => void
   resolvePendingDraftWorktreeTarget: (requestId: string, directory: string | null, options?: Record<string, unknown>) => void
@@ -756,14 +756,14 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  markSessionAsOpenChamberCreated: (sessionId) =>
+  markSessionAsCodeCaptainCreated: (sessionId) =>
     set((s) => {
       const next = new Set(s.webUICreatedSessions)
       next.add(sessionId)
       return { webUICreatedSessions: next }
     }),
 
-  isOpenChamberCreatedSession: (sessionId) => get().webUICreatedSessions.has(sessionId),
+  isCodeCaptainCreatedSession: (sessionId) => get().webUICreatedSessions.has(sessionId),
 
   getContextUsage: (contextLimit: number, outputLimit: number) => {
     if (get().newSessionDraft?.open) return null
@@ -807,7 +807,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
     }
   },
 
-  initializeNewOpenChamberSession: () => {
+  initializeNewCodeCaptainSession: () => {
     // Stub — was a no-op in old store
   },
 
@@ -953,7 +953,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
         useSelectionStore.getState().saveAgentModelVariantForSession(created.id, effectiveDraftAgent, providerID, modelID, variant)
       }
 
-      get().initializeNewOpenChamberSession(created.id, configState.agents ?? [])
+      get().initializeNewCodeCaptainSession(created.id, configState.agents ?? [])
 
       get().closeNewSessionDraft()
       get().setCurrentSession(created.id, createdDirectory)
@@ -1319,12 +1319,12 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
         sourceWorktreeMetadata?.projectDirectory ?? null,
       )
       if (!project?.path) {
-        throw new Error("Project is not registered in OpenChamber")
+        throw new Error("Project is not registered in CodeCaptain")
       }
 
       const [branchNameModule, configModule, createModule] = await Promise.all([
         import("@/lib/git/branchNameGenerator"),
-        import("@/lib/openchamberConfig"),
+        import("@/lib/codecaptainConfig"),
         import("@/lib/worktrees/worktreeCreate"),
       ])
       const branchName = branchNameModule.generateBranchName()

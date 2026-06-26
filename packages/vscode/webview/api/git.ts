@@ -39,7 +39,7 @@ import type {
   CherryPickResponse,
   RevertCommitResponse,
   ResetToCommitResponse,
-} from '@openchamber/ui/lib/api/types';
+} from '@codecaptain/ui/lib/api/types';
 
 type GitIdentityStoreState = {
   profiles: GitIdentityProfile[];

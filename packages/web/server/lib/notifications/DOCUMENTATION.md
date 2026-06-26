@@ -8,7 +8,7 @@ This module provides notification message preparation utilities for the web serv
 - `packages/web/server/lib/notifications/routes.js`: route registration for push, visibility, and session status/attention endpoints.
 - `packages/web/server/lib/notifications/push-runtime.js`: push subscription persistence, VAPID initialization, and UI visibility runtime.
 - `packages/web/server/lib/notifications/emitter-runtime.js`: desktop/stdout + UI SSE notification emission runtime.
-- `packages/web/server/lib/notifications/runtime.js`: trigger runtime for OpenCode event-driven notification fanout.
+- `packages/web/server/lib/notifications/runtime.js`: trigger runtime for CodeCaptain-core event-driven notification fanout.
 - `packages/web/server/lib/notifications/template-runtime.js`: notification template variables and session text/title enrichment runtime. Zen-model helpers are retained as compatibility stubs only.
 - `packages/web/server/lib/notifications/message.js`: helper implementation module.
 - `packages/web/server/lib/notifications/message.test.js`: unit tests for notification message helpers.
@@ -38,7 +38,7 @@ This module provides notification message preparation utilities for the web serv
   - `POST /api/sessions/:id/message-sent`
 
 ### Trigger runtime API (runtime.js)
-- `createNotificationTriggerRuntime(dependencies)`: creates runtime-owned debounced trigger handling for OpenCode events.
+- `createNotificationTriggerRuntime(dependencies)`: creates runtime-owned debounced trigger handling for CodeCaptain-core events.
 - Returned API:
   - `maybeSendPushForTrigger(payload)`
 - Owns:

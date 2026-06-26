@@ -1,91 +1,91 @@
 ---
 title: Variables de entorno
-description: Configura la integración de OpenChamber y OpenCode con variables de entorno.
+description: Configura la integración de CodeCaptain y CodeCaptain-core con variables de entorno.
 ---
 
 # Variables de entorno
 
-OpenChamber lee estas variables al arrancar. Para servicios de inicio, `openchamber startup enable` guarda por defecto una copia del entorno actual, así que vuelve a ejecutarlo después de cambiar variables que quieras usar en el servicio.
+CodeCaptain lee estas variables al arrancar. Para servicios de inicio, `codecaptain startup enable` guarda por defecto una copia del entorno actual, así que vuelve a ejecutarlo después de cambiar variables que quieras usar en el servicio.
 
-## Servidor OpenChamber
+## Servidor CodeCaptain
 
-### `OPENCHAMBER_HOST`
+### `CODECAPTAIN_HOST`
 
-Dirección donde escucha el servidor web de OpenChamber. Usa `0.0.0.0` para permitir acceso desde otras máquinas.
+Dirección donde escucha el servidor web de CodeCaptain. Usa `0.0.0.0` para permitir acceso desde otras máquinas.
 
-### `OPENCHAMBER_UI_PASSWORD`
+### `CODECAPTAIN_UI_PASSWORD`
 
 Contraseña para la interfaz del navegador. Úsala cuando no te limites a localhost, o cuando uses túneles o un proxy inverso.
 
-### `OPENCHAMBER_API_ONLY`
+### `CODECAPTAIN_API_ONLY`
 
-Inicia OpenChamber en modo headless cuando vale `true` o `1`. Las rutas API siguen disponibles para clientes de escritorio y móviles, pero no se sirve la UI del navegador.
+Inicia CodeCaptain en modo headless cuando vale `true` o `1`. Las rutas API siguen disponibles para clientes de escritorio y móviles, pero no se sirve la UI del navegador.
 
-### `OPENCHAMBER_DATA_DIR`
+### `CODECAPTAIN_DATA_DIR`
 
-Cambia el directorio de datos de OpenChamber. Por defecto es `~/.config/openchamber`.
+Cambia el directorio de datos de CodeCaptain. Por defecto es `~/.config/codecaptain`.
 
-### `OPENCHAMBER_COMPRESS_API`
+### `CODECAPTAIN_COMPRESS_API`
 
 Controla la compresión de respuestas de la API. `true` o `1` la activa; `false` o `0` la desactiva.
 
-### `OPENCHAMBER_SKIP_API_COMPRESSION`
+### `CODECAPTAIN_SKIP_API_COMPRESSION`
 
-Desactiva la compresión de respuestas de la API si vale `true` o `1`. Tiene prioridad sobre `OPENCHAMBER_COMPRESS_API`.
+Desactiva la compresión de respuestas de la API si vale `true` o `1`. Tiene prioridad sobre `CODECAPTAIN_COMPRESS_API`.
 
-### `OPENCHAMBER_VERBOSE_REQUEST_LOGS`
+### `CODECAPTAIN_VERBOSE_REQUEST_LOGS`
 
 Activa logs HTTP detallados si vale `true` o `1`.
 
-### `OPENCHAMBER_UPDATE_API_URL`
+### `CODECAPTAIN_UPDATE_API_URL`
 
 Cambia el endpoint de comprobación de actualizaciones. La mayoría de usuarios no debería tocarlo.
 
-### `OPENCHAMBER_PACKAGE_MANAGER`
+### `CODECAPTAIN_PACKAGE_MANAGER`
 
 Fuerza el gestor de paquetes usado para actualizar cuando la detección automática se equivoca.
 
-## Servidor OpenCode
+## Servidor CodeCaptain-core
 
 ### `OPENCODE_HOST`
 
-Conecta OpenChamber a un servidor OpenCode existente. Debe ser un origin `http` o `https` con puerto explícito y sin ruta, query ni hash. `OPENCODE_HOST` tiene prioridad sobre `OPENCODE_PORT`.
+Conecta CodeCaptain a un servidor CodeCaptain-core existente. Debe ser un origin `http` o `https` con puerto explícito y sin ruta, query ni hash. `OPENCODE_HOST` tiene prioridad sobre `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Define el puerto del servidor OpenCode. Con OpenCode gestionado pide ese puerto; con `OPENCODE_SKIP_START=true` conecta a un servidor externo en ese puerto.
+Define el puerto del servidor CodeCaptain-core. Con CodeCaptain-core gestionado pide ese puerto; con `OPENCODE_SKIP_START=true` conecta a un servidor externo en ese puerto.
 
 ### `OPENCODE_SKIP_START`
 
-Evita que OpenChamber arranque su propio servidor OpenCode cuando vale `true`.
+Evita que CodeCaptain arranque su propio servidor CodeCaptain-core cuando vale `true`.
 
-### `OPENCHAMBER_OPENCODE_HOSTNAME`
+### `CODECAPTAIN_OPENCODE_HOSTNAME`
 
-Hostname para el servidor OpenCode gestionado por OpenChamber. Por defecto es `127.0.0.1`.
+Hostname para el servidor CodeCaptain-core gestionado por CodeCaptain. Por defecto es `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Ruta al ejecutable `opencode` que debe usar OpenChamber.
+Ruta al ejecutable `opencode` que debe usar CodeCaptain.
 
 ### `OPENCODE_CONFIG`
 
-Ruta a un archivo de configuración concreto de OpenCode.
+Ruta a un archivo de configuración concreto de CodeCaptain-core.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Ruta al directorio de configuración de OpenCode para agents, skills, snippets y descubrimiento de config.
+Ruta al directorio de configuración de CodeCaptain-core para agents, skills, snippets y descubrimiento de config.
 
 ### `OPENCODE_DATA_DIR`
 
-Directorio de datos personalizado para el servidor OpenCode gestionado.
+Directorio de datos personalizado para el servidor CodeCaptain-core gestionado.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Elige la distro WSL usada para la integración con OpenCode en Windows.
+Elige la distro WSL usada para la integración con CodeCaptain-core en Windows.
 
-### `OPENCHAMBER_OPENCODE_WSL_DISTRO`
+### `CODECAPTAIN_OPENCODE_WSL_DISTRO`
 
-Alias específico de OpenChamber para elegir la distro WSL. `OPENCODE_WSL_DISTRO` tiene prioridad si ambas están definidas.
+Alias específico de CodeCaptain para elegir la distro WSL. `OPENCODE_WSL_DISTRO` tiene prioridad si ambas están definidas.
 
 ### `OPENCODE_JWT_SECRET`
 
@@ -93,19 +93,19 @@ Secreto para firmar tokens de autenticación de la UI. En servicios persistentes
 
 ## Terminal y Git
 
-### `OPENCHAMBER_TERMINAL_SHELL`
+### `CODECAPTAIN_TERMINAL_SHELL`
 
-Ejecutable de shell para las sesiones de terminal en OpenChamber.
+Ejecutable de shell para las sesiones de terminal en CodeCaptain.
 
-### `OPENCHAMBER_GIT_BINARY`
+### `CODECAPTAIN_GIT_BINARY`
 
-Ejecutable de Git usado por las funciones Git de OpenChamber.
+Ejecutable de Git usado por las funciones Git de CodeCaptain.
 
 ### `GIT_BINARY`
 
-Override alternativo para el ejecutable de Git. Para ajustes específicos de OpenChamber, prefiere `OPENCHAMBER_GIT_BINARY`.
+Override alternativo para el ejecutable de Git. Para ajustes específicos de CodeCaptain, prefiere `CODECAPTAIN_GIT_BINARY`.
 
-### `OPENCHAMBER_GIT_READ_CACHE_TTL_MS`
+### `CODECAPTAIN_GIT_READ_CACHE_TTL_MS`
 
 TTL, en milisegundos, para lecturas de archivos con cache respaldadas por Git. Usa `0` para desactivar la cache al depurar.
 
@@ -113,25 +113,25 @@ TTL, en milisegundos, para lecturas de archivos con cache respaldadas por Git. U
 
 ### `OPENAI_API_KEY`
 
-API key para funciones de voz de OpenChamber que llaman a servicios compatibles con OpenAI.
+API key para funciones de voz de CodeCaptain que llaman a servicios compatibles con OpenAI.
 
-### `OPENCHAMBER_ALLOW_REMOTE_OPENAI_COMPAT_URLS`
+### `CODECAPTAIN_ALLOW_REMOTE_OPENAI_COMPAT_URLS`
 
 Permite base URLs remotas compatibles con OpenAI para funciones de voz cuando vale `true` o `1`.
 
 ### `NGROK_AUTHTOKEN`
 
-Token de autenticación de ngrok usado por los comandos de túnel de OpenChamber. También puedes configurarlo con `ngrok config add-authtoken <token>`.
+Token de autenticación de ngrok usado por los comandos de túnel de CodeCaptain. También puedes configurarlo con `ngrok config add-authtoken <token>`.
 
 ## Ayudas de runtime
 
 ### `BUN_BINARY`
 
-Ejecutable de Bun que OpenChamber debe usar al iniciar procesos daemon.
+Ejecutable de Bun que CodeCaptain debe usar al iniciar procesos daemon.
 
 ### `BUN_INSTALL`
 
-Raíz de instalación de Bun. OpenChamber la usa para encontrar `bin/bun` al iniciar daemons y actualizar.
+Raíz de instalación de Bun. CodeCaptain la usa para encontrar `bin/bun` al iniciar daemons y actualizar.
 
 ### `VITE_OPENCODE_URL`
 

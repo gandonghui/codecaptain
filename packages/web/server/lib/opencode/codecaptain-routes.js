@@ -1,11 +1,11 @@
-export const registerOpenChamberRoutes = (app, dependencies) => {
+export const registerCodeCaptainRoutes = (app, dependencies) => {
   const {
     fs,
     path,
     process,
     server,
     __dirname,
-    openchamberDataDir,
+    codecaptainDataDir,
     modelsDevApiUrl,
     modelsMetadataCacheTtl,
     readSettingsFromDiskMigrated,
@@ -16,7 +16,7 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
   let cachedModelsMetadata = null;
   let cachedModelsMetadataTimestamp = 0;
 
-  app.get('/api/openchamber/update-check', async (req, res) => {
+  app.get('/api/codecaptain/update-check', async (req, res) => {
     try {
       const { checkForUpdates } = await import('../package-manager.js');
       const parseString = (value) => (typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined);
@@ -54,7 +54,7 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
     }
   });
 
-  app.post('/api/openchamber/update-install', async (_req, res) => {
+  app.post('/api/codecaptain/update-install', async (_req, res) => {
     try {
       const { spawn: spawnChild } = await import('child_process');
       const {
@@ -103,7 +103,7 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
       }
 
       const currentPort = server.address()?.port || 3000;
-      const instanceFilePath = path.join(openchamberDataDir, 'run', `openchamber-${currentPort}.json`);
+      const instanceFilePath = path.join(codecaptainDataDir, 'run', `codecaptain-${currentPort}.json`);
       let storedOptions = { port: currentPort, daemon: true };
       try {
         const content = await fs.promises.readFile(instanceFilePath, 'utf8');
@@ -129,7 +129,7 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
         String(storedOptions.port),
       ];
       let restartCmdPrimary = restartParts.join(' ');
-      let restartCmdFallback = `openchamber serve --port ${storedOptions.port}`;
+      let restartCmdFallback = `codecaptain serve --port ${storedOptions.port}`;
       if (storedOptions.host) {
         if (isWindows) {
           const escapedHost = storedOptions.host.replace(/"/g, '""');
@@ -157,10 +157,10 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
         restartCmdFallback += ' --api-only';
       }
       const restartCmd = isForegroundService ? '' : `(${restartCmdPrimary}) || (${restartCmdFallback})`;
-      const updateLogPath = path.join(openchamberDataDir, 'update-install.log');
+      const updateLogPath = path.join(codecaptainDataDir, 'update-install.log');
       const logPreamble = [
         '',
-        `=== OpenChamber update ${new Date().toISOString()} ===`,
+        `=== CodeCaptain update ${new Date().toISOString()} ===`,
         `currentVersion=${updateInfo.currentVersion || 'unknown'}`,
         `targetVersion=${updateInfo.version || 'unknown'}`,
         `packageManager=${pm}`,
@@ -197,8 +197,8 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
             timeout /t 2 /nobreak >nul
             ${updateCmd}
             if %ERRORLEVEL% EQU 0 (
-              echo Update successful, restarting OpenChamber...
-              ${restartCmd || 'echo Service manager will restart OpenChamber.'}
+              echo Update successful, restarting CodeCaptain...
+              ${restartCmd || 'echo Service manager will restart CodeCaptain.'}
             ) else (
               echo Update failed
               exit /b 1
@@ -209,8 +209,8 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
             sleep 2
             ${updateCmd}
             if [ $? -eq 0 ]; then
-              echo "Update successful, restarting OpenChamber..."
-              ${restartCmd || 'echo "Service manager will restart OpenChamber."'}
+              echo "Update successful, restarting CodeCaptain..."
+              ${restartCmd || 'echo "Service manager will restart CodeCaptain."'}
             else
               echo "Update failed"
               exit 1
@@ -253,7 +253,7 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
     }
   });
 
-  app.get('/api/openchamber/models-metadata', async (_req, res) => {
+  app.get('/api/codecaptain/models-metadata', async (_req, res) => {
     const now = Date.now();
 
     if (cachedModelsMetadata && now - cachedModelsMetadataTimestamp < modelsMetadataCacheTtl) {

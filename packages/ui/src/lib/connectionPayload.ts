@@ -22,7 +22,7 @@ export const encodeClientConnectionPayload = (payload: ClientConnectionPayload):
   params.set('server', payload.serverUrl);
   params.set('token', payload.token);
   if (payload.label) params.set('label', payload.label);
-  return `openchamber://connect?${params.toString()}`;
+  return `codecaptain://connect?${params.toString()}`;
 };
 
 export const parseClientConnectionPayload = (value: string): ClientConnectionPayload | null => {
@@ -31,7 +31,7 @@ export const parseClientConnectionPayload = (value: string): ClientConnectionPay
 
   try {
     const url = new URL(trimmed);
-    if (url.protocol !== 'openchamber:' || url.hostname !== 'connect') {
+    if (url.protocol !== 'codecaptain:' || url.hostname !== 'connect') {
       return null;
     }
     const version = url.searchParams.get('v');

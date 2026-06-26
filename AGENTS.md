@@ -1,20 +1,20 @@
-# OpenChamber - AI Agent Reference
+# CodeCaptain - AI Agent Reference
 
 ## Core purpose
 
-OpenChamber provides UI runtimes (web/desktop/VS Code) for interacting with an OpenCode server (local auto-start or remote URL). Official OpenCode traffic goes through `@opencode-ai/sdk`; OpenChamber-owned runtime capabilities go through `RuntimeAPIs`, `runtimeFetch`, and browser/realtime URL helpers.
+CodeCaptain provides UI runtimes (web/desktop/VS Code) for interacting with an CodeCaptain-core server (local auto-start or remote URL). Official CodeCaptain-core traffic goes through `@opencode-ai/sdk`; CodeCaptain-owned runtime capabilities go through `RuntimeAPIs`, `runtimeFetch`, and browser/realtime URL helpers.
 
 ## Runtime architecture (IMPORTANT)
 
 - `Desktop` (Electron) boots the web server **in the same Node process** as the Electron main, then loads the web UI from `http://127.0.0.1:<port>`. No sidecar subprocess.
 - Backend/domain logic lives in `packages/web/server/*` (and `packages/vscode/*` for VS Code bridge/runtime parity). Electron owns the desktop shell/security boundary: windows, menus, dialogs, notifications, updater, deep-links, runtime host switching, local IPC gates, and SSH/tunnel management.
-- Do not add OpenCode feature backends to the native shell. Shared UI features should remain server/runtime APIs unless the capability is inherently native.
+- Do not add CodeCaptain-core feature backends to the native shell. Shared UI features should remain server/runtime APIs unless the capability is inherently native.
 
 ### Desktop Shell
 
 - **Desktop work goes into `packages/electron/`.**
 - Desktop-side changes (IPC handlers, native integrations, window/quit/notification behavior) land in `packages/electron/main.mjs` + `packages/electron/preload.mjs`.
-- Electron imports the server via `@openchamber/web/server/index.js` (workspace dep) and calls `startWebUiServer({...})`. The returned handle has `getPort()` / `stop()`. Notifications flow via an `onDesktopNotification` callback injected at startup — no stdout-parsing IPC.
+- Electron imports the server via `@codecaptain/web/server/index.js` (workspace dep) and calls `startWebUiServer({...})`. The returned handle has `getPort()` / `stop()`. Notifications flow via an `onDesktopNotification` callback injected at startup — no stdout-parsing IPC.
 - Windows OS integrations must avoid console-window flashes. Any non-user-visible `child_process` call on Windows (system probes, tool discovery, updater/install helpers, SSH/tunnel helpers, cleanup, etc.) should run the target executable directly with `windowsHide: true`; detached/background helpers usually also need `stdio: 'ignore'`. Avoid `cmd.exe /c` pipelines and wrappers that spawn console grandchildren (`taskkill`, `ping`, nested `powershell`, batch shims), because `windowsHide` only reliably applies to the first child. If a delayed/background operation must outlive the app process, use a single hidden first-level helper (for example `powershell.exe -WindowStyle Hidden -EncodedCommand ...`) or a native Node/Electron API. Only omit this for intentionally user-visible shells/apps.
 - Build/release: Electron is the desktop release target.
 
@@ -43,7 +43,7 @@ Before changing any mapped module, read its module documentation first.
 
 ### web
 
-Web runtime and server implementation for OpenChamber.
+Web runtime and server implementation for CodeCaptain.
 
 #### lib
 
@@ -51,7 +51,7 @@ Server-side integration modules used by API routes and runtime services.
 
 ##### event-stream
 
-OpenChamber-owned event stream helpers for server-sent runtime events.
+CodeCaptain-owned event stream helpers for server-sent runtime events.
 
 - Module docs: `packages/web/server/lib/event-stream/DOCUMENTATION.md`
 
@@ -81,7 +81,7 @@ GitHub authentication, OAuth device flow, Octokit client factory, and repository
 
 ##### opencode
 
-OpenCode server integration utilities including config management, provider authentication, and UI authentication.
+CodeCaptain-core server integration utilities including config management, provider authentication, and UI authentication.
 
 - Module docs: `packages/web/server/lib/opencode/DOCUMENTATION.md`
 
@@ -117,7 +117,7 @@ Server-side text-to-speech services and summarization helpers for `/api/tts/*` e
 
 ##### tunnels
 
-Tunnel provider setup and runtime helpers for exposing OpenChamber over remote URLs.
+Tunnel provider setup and runtime helpers for exposing CodeCaptain over remote URLs.
 
 - Module docs: `packages/web/server/lib/tunnels/DOCUMENTATION.md`
 
@@ -181,13 +181,13 @@ All scripts are in `package.json`.
 - VS Code extension host: `packages/vscode/src/extension.ts`
 - VS Code webview bootstrap: `packages/vscode/webview/main.tsx`
 
-## OpenCode integration
+## CodeCaptain-core integration
 
 - UI client wrapper: `packages/ui/src/lib/opencode/client.ts` (imports `@opencode-ai/sdk/v2`)
-- Sync/event pipeline: app roots mount `SyncProvider` from `packages/ui/src/sync/sync-context.tsx`; OpenCode SSE/WS event handling lives in `packages/ui/src/sync/event-pipeline.ts`
-- Web server embeds/starts OpenCode server: `packages/web/server/index.js` (`createOpencodeServer`)
+- Sync/event pipeline: app roots mount `SyncProvider` from `packages/ui/src/sync/sync-context.tsx`; CodeCaptain-core SSE/WS event handling lives in `packages/ui/src/sync/event-pipeline.ts`
+- Web server embeds/starts CodeCaptain-core server: `packages/web/server/index.js` (`createOpencodeServer`)
 - Web runtime filesystem endpoints: `packages/web/server/lib/fs/routes.js`, registered by `packages/web/server/lib/opencode/feature-routes-runtime.js`
-- External server support: Set `OPENCODE_HOST` (full base URL, e.g. `http://hostname:4096`) or `OPENCODE_PORT`, plus `OPENCODE_SKIP_START=true`, to connect to existing OpenCode instance
+- External server support: Set `OPENCODE_HOST` (full base URL, e.g. `http://hostname:4096`) or `OPENCODE_PORT`, plus `OPENCODE_SKIP_START=true`, to connect to existing CodeCaptain-core instance
 
 ## Key UI patterns (reference files)
 
@@ -335,7 +335,7 @@ Project skills live under `.agents/skills/*/SKILL.md`. Before editing, agents **
 | Work being done | Required skill call |
 |---|---|
 | Terminal CLI commands, prompts, or output formatting, especially `packages/web/bin/*` | `skill({ name: "clack-cli-patterns" })` |
-| Shared UI data access, `RuntimeAPIs`, `runtimeFetch`, `runtime-url`, OpenCode SDK calls, VS Code bridges/proxies, authenticated browser assets, Electron runtime switching, or web server API endpoints | `skill({ name: "ui-api-decoupling" })` |
+| Shared UI data access, `RuntimeAPIs`, `runtimeFetch`, `runtime-url`, CodeCaptain-core SDK calls, VS Code bridges/proxies, authenticated browser assets, Electron runtime switching, or web server API endpoints | `skill({ name: "ui-api-decoupling" })` |
 | UI components, styling, visual elements, colors, buttons, or icons | `skill({ name: "theme-system" })` |
 | User-facing UI text: labels, buttons, placeholders, aria labels, empty/error/loading states, toasts, dialogs, settings copy, or navigation labels | `skill({ name: "locale-ui-patterns" })` |
 | Settings pages, settings dialogs, configuration UI, or visual/layout changes inside Settings | `skill({ name: "settings-ui-patterns" })` |

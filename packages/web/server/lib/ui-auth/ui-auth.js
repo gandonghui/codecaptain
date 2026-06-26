@@ -12,10 +12,10 @@ const URL_AUTH_TOKEN_TTL_MS = 60 * 1000;
 const URL_AUTH_TOKEN_PREFIX = 'oc_url_';
 
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const RATE_LIMIT_MAX_ATTEMPTS = Number(process.env.OPENCHAMBER_RATE_LIMIT_MAX_ATTEMPTS) || 10;
+const RATE_LIMIT_MAX_ATTEMPTS = Number(process.env.CODECAPTAIN_RATE_LIMIT_MAX_ATTEMPTS) || 10;
 const RATE_LIMIT_LOCKOUT_MS = 15 * 60 * 1000;
 const RATE_LIMIT_CLEANUP_MS = 60 * 60 * 1000;
-const RATE_LIMIT_NO_IP_MAX_ATTEMPTS = Number(process.env.OPENCHAMBER_RATE_LIMIT_NO_IP_MAX_ATTEMPTS) || 3;
+const RATE_LIMIT_NO_IP_MAX_ATTEMPTS = Number(process.env.CODECAPTAIN_RATE_LIMIT_NO_IP_MAX_ATTEMPTS) || 3;
 
 const loginRateLimiter = new Map();
 let rateLimitCleanupTimer = null;
@@ -294,7 +294,7 @@ const isWebSocketUpgrade = (req) => {
 const isUrlAuthReadableHttpPath = (pathname) => {
   return pathname === '/api/event'
     || pathname === '/api/global/event'
-    || pathname === '/api/openchamber/events'
+    || pathname === '/api/codecaptain/events'
     || pathname === '/api/notifications/stream'
     || pathname === '/api/fs/raw'
     || pathname === '/api/fs/serve'
@@ -359,10 +359,10 @@ const normalizePassword = (candidate) => {
 
 const isTrustedDeviceRequest = (value) => value === true;
 
-const OPENCHAMBER_DATA_DIR = process.env.OPENCHAMBER_DATA_DIR
-  ? path.resolve(process.env.OPENCHAMBER_DATA_DIR)
-  : path.join(os.homedir(), '.config', 'openchamber');
-const JWT_SECRET_FILE = path.join(OPENCHAMBER_DATA_DIR, 'jwt-secret');
+const CODECAPTAIN_DATA_DIR = process.env.CODECAPTAIN_DATA_DIR
+  ? path.resolve(process.env.CODECAPTAIN_DATA_DIR)
+  : path.join(os.homedir(), '.config', 'codecaptain');
+const JWT_SECRET_FILE = path.join(CODECAPTAIN_DATA_DIR, 'jwt-secret');
 
 function getOrCreateJwtSecret() {
   const envSecret = process.env.OPENCODE_JWT_SECRET;
@@ -380,7 +380,7 @@ function getOrCreateJwtSecret() {
 
   const secret = crypto.randomBytes(32).toString('hex');
   try {
-    fs.mkdirSync(OPENCHAMBER_DATA_DIR, { recursive: true });
+    fs.mkdirSync(CODECAPTAIN_DATA_DIR, { recursive: true });
     fs.writeFileSync(JWT_SECRET_FILE, secret, { mode: 0o600 });
     console.log('[JWT] Generated and persisted new secret to', JWT_SECRET_FILE);
   } catch (e) {
@@ -397,7 +397,7 @@ function persistJwtSecret(secret) {
     throw error;
   }
 
-  fs.mkdirSync(OPENCHAMBER_DATA_DIR, { recursive: true });
+  fs.mkdirSync(CODECAPTAIN_DATA_DIR, { recursive: true });
   fs.writeFileSync(JWT_SECRET_FILE, secret, { mode: 0o600 });
   return new TextEncoder().encode(secret);
 }

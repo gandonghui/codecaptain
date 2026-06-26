@@ -56,7 +56,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 
   const actions = React.useMemo(() => getCustomizableShortcutActions(), []);
   const actionLabel = React.useCallback((id: string, fallbackLabel: string): string => {
-    const key = `settings.openchamber.keyboardShortcuts.action.${id}.label`;
+    const key = `settings.codecaptain.keyboardShortcuts.action.${id}.label`;
     const translated = tUnsafe(key);
     return translated === key ? fallbackLabel : translated;
   }, [tUnsafe]);
@@ -103,7 +103,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
     persistShortcutOverrides(nextOverrides);
     setPendingOverwrite(null);
     setErrorText('');
-    setWarningText(isRiskyBrowserShortcut(normalized) ? t('settings.openchamber.keyboardShortcuts.warning.riskyBrowserShortcut') : '');
+    setWarningText(isRiskyBrowserShortcut(normalized) ? t('settings.codecaptain.keyboardShortcuts.warning.riskyBrowserShortcut') : '');
     setDraftByAction((current) => {
       const rest = { ...current };
       delete rest[actionId];
@@ -126,7 +126,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
     persistShortcutOverrides(nextOverrides);
     setPendingOverwrite(null);
     setErrorText('');
-    setWarningText(isRiskyBrowserShortcut(pendingOverwrite.combo) ? t('settings.openchamber.keyboardShortcuts.warning.riskyBrowserShortcut') : '');
+    setWarningText(isRiskyBrowserShortcut(pendingOverwrite.combo) ? t('settings.codecaptain.keyboardShortcuts.warning.riskyBrowserShortcut') : '');
     setDraftByAction((current) => {
       const rest = { ...current };
       delete rest[pendingOverwrite.actionId];
@@ -153,7 +153,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
     <div data-settings-item="shortcuts.keyboard-shortcuts" className="mb-8">
       <div className="mb-1 px-1">
         <div className="flex items-center gap-2">
-          <h3 className="typography-ui-header font-medium text-foreground">{t('settings.openchamber.keyboardShortcuts.title')}</h3>
+          <h3 className="typography-ui-header font-medium text-foreground">{t('settings.codecaptain.keyboardShortcuts.title')}</h3>
           <Button
             type="button"
             variant="outline"
@@ -168,14 +168,14 @@ export const KeyboardShortcutsSettings: React.FC = () => {
               setWarningText('');
             }}
           >
-            {t('settings.openchamber.keyboardShortcuts.actions.resetAll')}
+            {t('settings.codecaptain.keyboardShortcuts.actions.resetAll')}
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Icon name="information" className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
             </TooltipTrigger>
             <TooltipContent sideOffset={8} className="max-w-xs">
-              {t('settings.openchamber.keyboardShortcuts.tooltip')}
+              {t('settings.codecaptain.keyboardShortcuts.tooltip')}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -186,10 +186,10 @@ export const KeyboardShortcutsSettings: React.FC = () => {
           {pendingOverwrite && (
             <div className="rounded-lg border border-[var(--status-warning-border)] bg-[var(--status-warning-background)] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="typography-meta text-foreground">
-                {t('settings.openchamber.keyboardShortcuts.overwritePrompt')}
+                {t('settings.codecaptain.keyboardShortcuts.overwritePrompt')}
               </span>
               <div className="flex gap-2 shrink-0">
-                <Button type="button" size="xs" className="!font-normal" onClick={confirmOverwrite}>{t('settings.openchamber.keyboardShortcuts.actions.overwrite')}</Button>
+                <Button type="button" size="xs" className="!font-normal" onClick={confirmOverwrite}>{t('settings.codecaptain.keyboardShortcuts.actions.overwrite')}</Button>
                 <Button type="button" size="xs" className="!font-normal" variant="ghost" onClick={() => setPendingOverwrite(null)}>{t('settings.common.actions.cancel')}</Button>
               </div>
             </div>
@@ -222,7 +222,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
               <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-fit sm:flex-initial">
                 <Input
                   readOnly
-                  value={capturingActionId === action.id ? t('settings.openchamber.keyboardShortcuts.field.pressKeys') : formatShortcutForDisplay(displayCombo)}
+                  value={capturingActionId === action.id ? t('settings.codecaptain.keyboardShortcuts.field.pressKeys') : formatShortcutForDisplay(displayCombo)}
                   onFocus={() => {
                     setCapturingActionId(action.id);
                     setErrorText('');
@@ -264,7 +264,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
                   onClick={() => {
                     const next = draftByAction[action.id];
                     if (!next) {
-                      setErrorText(t('settings.openchamber.keyboardShortcuts.error.captureFirst'));
+                      setErrorText(t('settings.codecaptain.keyboardShortcuts.error.captureFirst'));
                       return;
                     }
                     saveCombo(action.id, next);

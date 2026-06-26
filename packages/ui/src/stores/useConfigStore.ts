@@ -22,7 +22,7 @@ import { markStartupTrace, measureStartupTrace } from "@/lib/startupTrace";
 import { getSyncConfig, subscribeToSyncConfigChanges } from "@/sync/sync-refs";
 
 const MODELS_DEV_API_URL = "https://models.dev/api.json";
-const MODELS_DEV_PROXY_URL = "/api/openchamber/models-metadata";
+const MODELS_DEV_PROXY_URL = "/api/codecaptain/models-metadata";
 const STT_SILENCE_THRESHOLD_DB_MIN = -100;
 const STT_SILENCE_THRESHOLD_DB_MAX = 0;
 const STT_SILENCE_HOLD_MS_MIN = 250;
@@ -48,7 +48,7 @@ const normalizeSttSilenceHoldMs = (value: unknown): number | undefined => {
     return Math.max(STT_SILENCE_HOLD_MS_MIN, Math.min(STT_SILENCE_HOLD_MS_MAX, Math.round(value)));
 };
 
-interface OpenChamberDefaults {
+interface CodeCaptainDefaults {
     defaultModel?: string;
     defaultVariant?: string;
     defaultAgent?: string;
@@ -66,10 +66,10 @@ interface OpenChamberDefaults {
     sttSilenceHoldMs?: number;
 }
 
-const fetchOpenChamberDefaults = async (): Promise<OpenChamberDefaults> => {
+const fetchCodeCaptainDefaults = async (): Promise<CodeCaptainDefaults> => {
     markStartupTrace('config.defaults:start');
     const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    const finish = (source: string, result: OpenChamberDefaults) => {
+    const finish = (source: string, result: CodeCaptainDefaults) => {
         const ended = typeof performance !== 'undefined' ? performance.now() : Date.now();
         markStartupTrace('config.defaults:end', {
             source,
@@ -961,7 +961,7 @@ interface ConfigStore {
     lastDisconnectReason: string | null;
     isInitialized: boolean;
     modelsMetadata: Map<string, ModelMetadata>;
-    // OpenChamber settings-based defaults (take precedence over agent preferences)
+    // CodeCaptain settings-based defaults (take precedence over agent preferences)
     settingsDefaultModel: string | undefined; // format: "provider/model"
     settingsDefaultVariant: string | undefined;
     settingsDefaultAgent: string | undefined;
@@ -1230,7 +1230,7 @@ export const useConfigStore = create<ConfigStore>()(
                         if (saved === 'browser' || saved === 'server' || saved === 'wasm') return saved;
                         // Electron/Chromium's Web Speech API requires Google API keys
                         // not available in Electron, so default to WASM local Whisper.
-                        const electron = (window as unknown as { __OPENCHAMBER_ELECTRON__?: { runtime?: string } }).__OPENCHAMBER_ELECTRON__;
+                        const electron = (window as unknown as { __CODECAPTAIN_ELECTRON__?: { runtime?: string } }).__CODECAPTAIN_ELECTRON__;
                         if (electron?.runtime === 'electron') return 'wasm' as const;
                     }
                     return 'browser' as const;
@@ -1949,7 +1949,7 @@ export const useConfigStore = create<ConfigStore>()(
 
                     for (let attempt = 0; attempt < 3; attempt++) {
                         try {
-                            // Fetch agents and OpenChamber settings in parallel. OpenCode config
+                            // Fetch agents and CodeCaptain settings in parallel. OpenCode config
                             // comes from sync state if it is already available; it must not block
                             // the agent refresh path.
                             const configDirectoryPath = fromDirectoryKey(directoryKey);
@@ -1964,7 +1964,7 @@ export const useConfigStore = create<ConfigStore>()(
                                     () => opencodeClient.listAgents(configDirectoryPath),
                                     { directoryKey, source, requestedDirectory, effectiveDirectory, attempt: attempt + 1 },
                                 ),
-                                fetchOpenChamberDefaults(),
+                                fetchCodeCaptainDefaults(),
                             ]);
 
                             const safeAgents = Array.isArray(agents) ? agents : [];
@@ -2139,7 +2139,7 @@ export const useConfigStore = create<ConfigStore>()(
                                 return provider.models.some((m) => m.id === modelId);
                             };
 
-                            // Detect invalid OpenChamber settings so we can clear them from storage.
+                            // Detect invalid CodeCaptain settings so we can clear them from storage.
                             // This is independent of resolution: even though the cascade below falls
                             // back gracefully, stale settings pointing at removed agents/models/variants
                             // should be cleaned up.
@@ -2387,10 +2387,10 @@ export const useConfigStore = create<ConfigStore>()(
                             selState.saveSessionAgentSelection(currentSessionId, agentName);
                         }
 
-                        if (currentSessionId && useSessionUIStore.getState().isOpenChamberCreatedSession(currentSessionId)) {
+                        if (currentSessionId && useSessionUIStore.getState().isCodeCaptainCreatedSession(currentSessionId)) {
                             const existingAgentModel = selState.getAgentModelForSession(currentSessionId, agentName);
                             if (!existingAgentModel) {
-                                useSessionUIStore.getState().initializeNewOpenChamberSession(currentSessionId, agents);
+                                useSessionUIStore.getState().initializeNewCodeCaptainSession(currentSessionId, agents);
                             }
                         }
                     }

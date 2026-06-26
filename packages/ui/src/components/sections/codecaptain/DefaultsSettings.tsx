@@ -149,7 +149,7 @@ export const DefaultsSettings: React.FC = () => {
 
   const formatVariantLabel = React.useCallback((variant: string) => {
     if (variant === DEFAULT_VARIANT_VALUE) {
-      return t('settings.openchamber.defaults.option.default');
+      return t('settings.codecaptain.defaults.option.default');
     }
     return variant.charAt(0).toUpperCase() + variant.slice(1);
   }, [t]);
@@ -221,21 +221,21 @@ export const DefaultsSettings: React.FC = () => {
     <div className="mb-6">
       <div className="mb-0.5 px-1">
         <div className="flex items-center gap-2">
-          <h3 className="typography-ui-header font-medium text-foreground">{t('settings.openchamber.defaults.title')}</h3>
+          <h3 className="typography-ui-header font-medium text-foreground">{t('settings.codecaptain.defaults.title')}</h3>
         </div>
       </div>
 
       <section className="px-2 pb-2 pt-0 space-y-0">
         <div className="mt-0 mb-1 typography-meta text-muted-foreground">
-          {t('settings.openchamber.defaults.summaryPrefix')}
+          {t('settings.codecaptain.defaults.summaryPrefix')}
           {' '}
           {parsedModel.providerId ? (
             <span className="text-foreground">
               {parsedModel.providerId}/{parsedModel.modelId}
-              {supportsVariants ? ` (${defaultVariant ?? t('settings.openchamber.defaults.option.defaultLowercase')})` : ''}
+              {supportsVariants ? ` (${defaultVariant ?? t('settings.codecaptain.defaults.option.defaultLowercase')})` : ''}
             </span>
           ) : (
-            <span className="text-foreground">{t('settings.openchamber.defaults.summaryOpenCodeDefault')}</span>
+            <span className="text-foreground">{t('settings.codecaptain.defaults.summaryOpenCodeDefault')}</span>
           )}
           {defaultAgent && (
             <>
@@ -247,7 +247,7 @@ export const DefaultsSettings: React.FC = () => {
 
         <div data-settings-item="sessions.default-model" className={cn('flex flex-col gap-2 py-1 sm:flex-row sm:items-center sm:gap-8')}>
           <div className="flex min-w-0 flex-col sm:w-56 shrink-0">
-            <span className="typography-ui-label text-foreground">{t('settings.openchamber.defaults.field.defaultModel')}</span>
+            <span className="typography-ui-label text-foreground">{t('settings.codecaptain.defaults.field.defaultModel')}</span>
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-fit sm:flex-initial">
             <ModelSelector providerId={parsedModel.providerId} modelId={parsedModel.modelId} onChange={handleModelChange} />
@@ -256,17 +256,17 @@ export const DefaultsSettings: React.FC = () => {
 
         <div data-settings-item="sessions.default-thinking" className="flex flex-col gap-2 py-1 sm:flex-row sm:items-center sm:gap-8">
           <div className="flex min-w-0 flex-col sm:w-56 shrink-0">
-            <span className="typography-ui-label text-foreground">{t('settings.openchamber.defaults.field.defaultThinking')}</span>
+            <span className="typography-ui-label text-foreground">{t('settings.codecaptain.defaults.field.defaultThinking')}</span>
           </div>
           <div className="flex items-center gap-2 sm:w-fit">
             <Select value={defaultVariant ?? DEFAULT_VARIANT_VALUE} onValueChange={handleVariantChange} disabled={!supportsVariants}>
               <SelectTrigger className="w-fit min-w-[120px]">
-                <SelectValue placeholder={t('settings.openchamber.defaults.field.thinkingPlaceholder')}>
+                <SelectValue placeholder={t('settings.codecaptain.defaults.field.thinkingPlaceholder')}>
                   {formatVariantLabel(defaultVariant ?? DEFAULT_VARIANT_VALUE)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={DEFAULT_VARIANT_VALUE}>{t('settings.openchamber.defaults.option.default')}</SelectItem>
+                <SelectItem value={DEFAULT_VARIANT_VALUE}>{t('settings.codecaptain.defaults.option.default')}</SelectItem>
                 {availableVariants.map((variant) => (
                   <SelectItem key={variant} value={variant}>
                     {formatVariantLabel(variant)}
@@ -279,7 +279,7 @@ export const DefaultsSettings: React.FC = () => {
 
         <div data-settings-item="sessions.default-agent" className="flex flex-col gap-2 py-1 sm:flex-row sm:items-center sm:gap-8">
           <div className="flex min-w-0 flex-col sm:w-56 shrink-0">
-            <span className="typography-ui-label text-foreground">{t('settings.openchamber.defaults.field.defaultAgent')}</span>
+            <span className="typography-ui-label text-foreground">{t('settings.codecaptain.defaults.field.defaultAgent')}</span>
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-fit sm:flex-initial">
             <AgentSelector agentName={defaultAgent || ''} onChange={handleAgentChange} />
@@ -300,8 +300,8 @@ export const DefaultsSettings: React.FC = () => {
             }
           }}
         >
-          <Checkbox checked={showDeletionDialog} onChange={setShowDeletionDialog} ariaLabel={t('settings.openchamber.defaults.field.showDeletionDialogAria')} />
-          <span className="typography-ui-label text-foreground">{t('settings.openchamber.defaults.field.showDeletionDialog')}</span>
+          <Checkbox checked={showDeletionDialog} onChange={setShowDeletionDialog} ariaLabel={t('settings.codecaptain.defaults.field.showDeletionDialogAria')} />
+          <span className="typography-ui-label text-foreground">{t('settings.codecaptain.defaults.field.showDeletionDialog')}</span>
         </div>
 
       </section>

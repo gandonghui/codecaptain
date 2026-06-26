@@ -3,7 +3,7 @@
 //
 // Source resolution order (first existing wins):
 //   1. --source <path> CLI arg
-//   2. OPENCHAMBER_OPENCODE_SOURCE env var
+//   2. CODECAPTAIN_OPENCODE_SOURCE env var
 //   3. The platform's standard opencode install location:
 //        Windows: %USERPROFILE%\.opencode\bin\opencode.exe (then .cmd)
 //        macOS/Linux: ~/.opencode/bin/opencode, ~/.bun/bin/opencode, /usr/local/bin/opencode
@@ -12,7 +12,7 @@
 // copied — useful when opencode ships alongside helper files). If nothing is
 // found and the destination already holds a binary, the existing one is kept.
 //
-// Set OPENCHAMBER_REQUIRE_BUNDLED_OPENCODE=1 (or pass --require) to hard-fail the
+// Set CODECAPTAIN_REQUIRE_BUNDLED_OPENCODE=1 (or pass --require) to hard-fail the
 // build when no opencode binary can be staged — recommended for release builds
 // that must be self-contained for offline use.
 
@@ -33,7 +33,7 @@ const getArg = (name) => {
   return i >= 0 && i + 1 < argv.length ? argv[i + 1] : null;
 };
 const requireBundled =
-  argv.includes('--require') || process.env.OPENCHAMBER_REQUIRE_BUNDLED_OPENCODE === '1';
+  argv.includes('--require') || process.env.CODECAPTAIN_REQUIRE_BUNDLED_OPENCODE === '1';
 
 const isExecutableFile = (p) => {
   try {
@@ -44,7 +44,7 @@ const isExecutableFile = (p) => {
 };
 
 const resolveSource = () => {
-  const explicit = [getArg('--source'), process.env.OPENCHAMBER_OPENCODE_SOURCE]
+  const explicit = [getArg('--source'), process.env.CODECAPTAIN_OPENCODE_SOURCE]
     .map((v) => (typeof v === 'string' ? v.trim() : ''))
     .filter(Boolean);
   for (const candidate of explicit) {
@@ -94,7 +94,7 @@ if (!source) {
   const msg =
     '[vendor-opencode] No opencode CLI found to bundle. Install opencode (so it lives at ' +
     `${isWin ? '%USERPROFILE%\\.opencode\\bin\\opencode.exe' : '~/.opencode/bin/opencode'}) ` +
-    'or pass --source <path> / set OPENCHAMBER_OPENCODE_SOURCE.';
+    'or pass --source <path> / set CODECAPTAIN_OPENCODE_SOURCE.';
   if (requireBundled) {
     console.error(msg);
     process.exit(1);

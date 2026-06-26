@@ -1,7 +1,7 @@
 /**
- * OpenChamber project-level configuration service.
- * Stores per-project settings in ~/.config/openchamber/<projectId>.json.
- * Migrates from legacy <project>/.openchamber/openchamber.json.
+ * CodeCaptain project-level configuration service.
+ * Stores per-project settings in ~/.config/codecaptain/<projectId>.json.
+ * Migrates from legacy <project>/.codecaptain/codecaptain.json.
  */
 
 import type { FilesAPI } from './api/types';
@@ -14,10 +14,10 @@ import { runtimeFetch } from './runtime-fetch';
 
 type ProjectRef = { id: string; path: string };
 
-const CONFIG_FILENAME = 'openchamber.json';
+const CONFIG_FILENAME = 'codecaptain.json';
 // LEGACY_PROJECT_CONFIG: legacy per-project config root inside repo.
-const LEGACY_CONFIG_DIR = '.openchamber';
-const USER_PROJECTS_DIR_SEGMENTS = ['.config', 'openchamber', 'projects'];
+const LEGACY_CONFIG_DIR = '.codecaptain';
+const USER_PROJECTS_DIR_SEGMENTS = ['.config', 'codecaptain', 'projects'];
 
 /**
  * Get the runtime Files API if available (Desktop/VSCode).
@@ -30,73 +30,73 @@ function getRuntimeFilesAPI(): FilesAPI | null {
   return null;
 }
 
-export interface OpenChamberConfig {
+export interface CodeCaptainConfig {
   projectPath?: string;
   'setup-worktree'?: string[];
   projectNotes?: string;
-  projectTodos?: OpenChamberProjectTodoItem[];
-  projectPlanFiles?: OpenChamberProjectPlanFileLink[];
-  projectActions?: OpenChamberProjectAction[];
+  projectTodos?: CodeCaptainProjectTodoItem[];
+  projectPlanFiles?: CodeCaptainProjectPlanFileLink[];
+  projectActions?: CodeCaptainProjectAction[];
   projectActionsPrimaryId?: string;
   draftStarters?: DraftStarterRef[];
 }
 
-export type OpenChamberProjectActionPlatform = 'macos' | 'linux' | 'windows';
+export type CodeCaptainProjectActionPlatform = 'macos' | 'linux' | 'windows';
 
-export interface OpenChamberProjectAction {
+export interface CodeCaptainProjectAction {
   id: string;
   name: string;
   command: string;
   icon?: string | null;
-  platforms?: OpenChamberProjectActionPlatform[];
+  platforms?: CodeCaptainProjectActionPlatform[];
   autoOpenUrl?: boolean;
   openUrl?: string;
   desktopOpenSshForward?: string;
 }
 
-export interface OpenChamberProjectActionsState {
-  actions: OpenChamberProjectAction[];
+export interface CodeCaptainProjectActionsState {
+  actions: CodeCaptainProjectAction[];
   primaryActionId: string | null;
 }
 
-export interface OpenChamberProjectTodoItem {
+export interface CodeCaptainProjectTodoItem {
   id: string;
   text: string;
   completed: boolean;
   createdAt: number;
 }
 
-export interface OpenChamberProjectPlanFileLink {
+export interface CodeCaptainProjectPlanFileLink {
   id: string;
   path: string;
   createdAt: number;
 }
 
-export interface OpenChamberProjectPlanFile {
+export interface CodeCaptainProjectPlanFile {
   title: string;
   body: string;
   raw: string;
   path: string;
 }
 
-export interface OpenChamberProjectNotesTodos {
+export interface CodeCaptainProjectNotesTodos {
   notes: string;
-  todos: OpenChamberProjectTodoItem[];
+  todos: CodeCaptainProjectTodoItem[];
 }
 
-export interface OpenChamberProjectContextData extends OpenChamberProjectNotesTodos {
-  plans: OpenChamberProjectPlanFileLink[];
+export interface CodeCaptainProjectContextData extends CodeCaptainProjectNotesTodos {
+  plans: CodeCaptainProjectPlanFileLink[];
 }
 
-export const OPENCHAMBER_PROJECT_NOTES_MAX_LENGTH = 3000;
-export const OPENCHAMBER_PROJECT_TODO_TEXT_MAX_LENGTH = 120;
-export const OPENCHAMBER_PROJECT_ACTION_NAME_MAX_LENGTH = 80;
-export const OPENCHAMBER_PROJECT_ACTION_COMMAND_MAX_LENGTH = 4000;
-export const OPENCHAMBER_PROJECT_ACTION_OPEN_URL_MAX_LENGTH = 2000;
-export const OPENCHAMBER_PROJECT_ACTION_DESKTOP_FORWARD_MAX_LENGTH = 300;
-export const OPENCHAMBER_PROJECT_PLAN_TITLE_MAX_LENGTH = 160;
+export const CODECAPTAIN_PROJECT_NOTES_MAX_LENGTH = 3000;
+export const CODECAPTAIN_PROJECT_TODO_TEXT_MAX_LENGTH = 120;
+export const CODECAPTAIN_PROJECT_ACTION_NAME_MAX_LENGTH = 80;
+export const CODECAPTAIN_PROJECT_ACTION_COMMAND_MAX_LENGTH = 4000;
+export const CODECAPTAIN_PROJECT_ACTION_OPEN_URL_MAX_LENGTH = 2000;
+export const CODECAPTAIN_PROJECT_ACTION_DESKTOP_FORWARD_MAX_LENGTH = 300;
+export const CODECAPTAIN_PROJECT_PLAN_TITLE_MAX_LENGTH = 160;
 
-const OPENCHAMBER_ACTION_PLATFORM_SET = new Set<OpenChamberProjectActionPlatform>(['macos', 'linux', 'windows']);
+const CODECAPTAIN_ACTION_PLATFORM_SET = new Set<CodeCaptainProjectActionPlatform>(['macos', 'linux', 'windows']);
 
 const normalize = (value: string): string => {
   if (!value) return '';
@@ -206,7 +206,7 @@ const writeTextFile = async (path: string, content: string): Promise<boolean> =>
 
 const resolveHomeDirectory = async (): Promise<string | null> => {
   // Use server-reported home as the source of truth for user config paths.
-  // In some runtimes, window.__OPENCHAMBER_HOME__ can be workspace/project-root
+  // In some runtimes, window.__CODECAPTAIN_HOME__ can be workspace/project-root
   // scoped, which would incorrectly route writes into the project directory.
   try {
     const response = await runtimeFetch(`${getBaseUrl()}/fs/home`, {
@@ -274,15 +274,15 @@ const sanitizeProjectNotes = (value: unknown): string => {
   if (typeof value !== 'string') {
     return '';
   }
-  return trimToMaxLength(value, OPENCHAMBER_PROJECT_NOTES_MAX_LENGTH);
+  return trimToMaxLength(value, CODECAPTAIN_PROJECT_NOTES_MAX_LENGTH);
 };
 
-const sanitizeProjectTodoItems = (value: unknown): OpenChamberProjectTodoItem[] => {
+const sanitizeProjectTodoItems = (value: unknown): CodeCaptainProjectTodoItem[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const sanitized: OpenChamberProjectTodoItem[] = [];
+  const sanitized: CodeCaptainProjectTodoItem[] = [];
   for (const entry of value) {
     if (!entry || typeof entry !== 'object') {
       continue;
@@ -297,7 +297,7 @@ const sanitizeProjectTodoItems = (value: unknown): OpenChamberProjectTodoItem[] 
 
     const id = typeof record.id === 'string' ? record.id.trim() : '';
     const textRaw = typeof record.text === 'string' ? record.text : '';
-    const text = trimToMaxLength(textRaw.trim(), OPENCHAMBER_PROJECT_TODO_TEXT_MAX_LENGTH);
+    const text = trimToMaxLength(textRaw.trim(), CODECAPTAIN_PROJECT_TODO_TEXT_MAX_LENGTH);
     if (!id || !text) {
       continue;
     }
@@ -320,12 +320,12 @@ const sanitizeProjectTodoItems = (value: unknown): OpenChamberProjectTodoItem[] 
   return sanitized;
 };
 
-const sanitizeProjectPlanFileLinks = (value: unknown): OpenChamberProjectPlanFileLink[] => {
+const sanitizeProjectPlanFileLinks = (value: unknown): CodeCaptainProjectPlanFileLink[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const sanitized: OpenChamberProjectPlanFileLink[] = [];
+  const sanitized: CodeCaptainProjectPlanFileLink[] = [];
   const seenIds = new Set<string>();
 
   for (const entry of value) {
@@ -357,19 +357,19 @@ const sanitizeProjectPlanFileLinks = (value: unknown): OpenChamberProjectPlanFil
   return sanitized.sort((a, b) => b.createdAt - a.createdAt);
 };
 
-const sanitizeProjectActionPlatforms = (value: unknown): OpenChamberProjectActionPlatform[] => {
+const sanitizeProjectActionPlatforms = (value: unknown): CodeCaptainProjectActionPlatform[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const unique: OpenChamberProjectActionPlatform[] = [];
-  const seen = new Set<OpenChamberProjectActionPlatform>();
+  const unique: CodeCaptainProjectActionPlatform[] = [];
+  const seen = new Set<CodeCaptainProjectActionPlatform>();
   for (const entry of value) {
     if (typeof entry !== 'string') {
       continue;
     }
-    const normalized = entry.trim().toLowerCase() as OpenChamberProjectActionPlatform;
-    if (!OPENCHAMBER_ACTION_PLATFORM_SET.has(normalized) || seen.has(normalized)) {
+    const normalized = entry.trim().toLowerCase() as CodeCaptainProjectActionPlatform;
+    if (!CODECAPTAIN_ACTION_PLATFORM_SET.has(normalized) || seen.has(normalized)) {
       continue;
     }
     seen.add(normalized);
@@ -379,12 +379,12 @@ const sanitizeProjectActionPlatforms = (value: unknown): OpenChamberProjectActio
   return unique;
 };
 
-const sanitizeProjectActions = (value: unknown): OpenChamberProjectAction[] => {
+const sanitizeProjectActions = (value: unknown): CodeCaptainProjectAction[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const sanitized: OpenChamberProjectAction[] = [];
+  const sanitized: CodeCaptainProjectAction[] = [];
   const seenIds = new Set<string>();
 
   for (const entry of value) {
@@ -404,8 +404,8 @@ const sanitizeProjectActions = (value: unknown): OpenChamberProjectAction[] => {
     };
 
     const id = typeof record.id === 'string' ? record.id.trim() : '';
-    const name = trimToMaxLength(typeof record.name === 'string' ? record.name.trim() : '', OPENCHAMBER_PROJECT_ACTION_NAME_MAX_LENGTH);
-    const command = trimToMaxLength(typeof record.command === 'string' ? record.command.trim() : '', OPENCHAMBER_PROJECT_ACTION_COMMAND_MAX_LENGTH);
+    const name = trimToMaxLength(typeof record.name === 'string' ? record.name.trim() : '', CODECAPTAIN_PROJECT_ACTION_NAME_MAX_LENGTH);
+    const command = trimToMaxLength(typeof record.command === 'string' ? record.command.trim() : '', CODECAPTAIN_PROJECT_ACTION_COMMAND_MAX_LENGTH);
 
     if (!id || !name || !command || seenIds.has(id)) {
       continue;
@@ -416,13 +416,13 @@ const sanitizeProjectActions = (value: unknown): OpenChamberProjectAction[] => {
     const platforms = sanitizeProjectActionPlatforms(record.platforms);
     const autoOpenUrl = record.autoOpenUrl === true;
     const openUrlRaw = typeof record.openUrl === 'string' ? record.openUrl.trim() : '';
-    const openUrl = trimToMaxLength(openUrlRaw, OPENCHAMBER_PROJECT_ACTION_OPEN_URL_MAX_LENGTH);
+    const openUrl = trimToMaxLength(openUrlRaw, CODECAPTAIN_PROJECT_ACTION_OPEN_URL_MAX_LENGTH);
     const desktopOpenSshForwardRaw = typeof record.desktopOpenSshForward === 'string'
       ? record.desktopOpenSshForward.trim()
       : '';
     const desktopOpenSshForward = trimToMaxLength(
       desktopOpenSshForwardRaw,
-      OPENCHAMBER_PROJECT_ACTION_DESKTOP_FORWARD_MAX_LENGTH
+      CODECAPTAIN_PROJECT_ACTION_DESKTOP_FORWARD_MAX_LENGTH
     );
 
     sanitized.push({
@@ -443,7 +443,7 @@ const sanitizeProjectActions = (value: unknown): OpenChamberProjectAction[] => {
 const sanitizeProjectActionsState = (value: {
   actions?: unknown;
   primaryActionId?: unknown;
-} | null | undefined): OpenChamberProjectActionsState => {
+} | null | undefined): CodeCaptainProjectActionsState => {
   const actions = sanitizeProjectActions(value?.actions);
   const primaryRaw = typeof value?.primaryActionId === 'string' ? value.primaryActionId.trim() : '';
   const primaryActionId = primaryRaw && actions.some((entry) => entry.id === primaryRaw)
@@ -459,7 +459,7 @@ const sanitizeProjectActionsState = (value: {
 const sanitizeProjectNotesAndTodos = (value: {
   notes?: unknown;
   todos?: unknown;
-} | null | undefined): OpenChamberProjectNotesTodos => {
+} | null | undefined): CodeCaptainProjectNotesTodos => {
   return {
     notes: sanitizeProjectNotes(value?.notes),
     todos: sanitizeProjectTodoItems(value?.todos),
@@ -470,7 +470,7 @@ const sanitizeProjectContextData = (value: {
   notes?: unknown;
   todos?: unknown;
   plans?: unknown;
-} | null | undefined): OpenChamberProjectContextData => {
+} | null | undefined): CodeCaptainProjectContextData => {
   const notesAndTodos = sanitizeProjectNotesAndTodos(value);
   return {
     ...notesAndTodos,
@@ -492,7 +492,7 @@ const slugifyPlanTitle = (value: string): string => {
 };
 
 const sanitizePlanTitle = (value: string): string => {
-  return trimToMaxLength(value.trim(), OPENCHAMBER_PROJECT_PLAN_TITLE_MAX_LENGTH);
+  return trimToMaxLength(value.trim(), CODECAPTAIN_PROJECT_PLAN_TITLE_MAX_LENGTH);
 };
 
 const createProjectPlanId = (): string => {
@@ -551,7 +551,7 @@ export const parseProjectPlanMarkdown = (raw: string): { title: string; body: st
  * Read the config for a project.
  * Returns null if file doesn't exist or is invalid.
  */
-export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenChamberConfig | null> {
+export async function readCodeCaptainConfig(project: ProjectRef): Promise<CodeCaptainConfig | null> {
   const projectDirectory = typeof project?.path === 'string' ? project.path.trim() : '';
   if (!projectDirectory) {
     return null;
@@ -568,7 +568,7 @@ export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenCh
     return text;
   };
 
-  const parseConfig = (text: string | null): OpenChamberConfig | null => {
+  const parseConfig = (text: string | null): CodeCaptainConfig | null => {
     if (typeof text !== 'string') {
       return null;
     }
@@ -581,7 +581,7 @@ export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenCh
       if (!parsed || typeof parsed !== 'object') {
         return null;
       }
-      return parsed as OpenChamberConfig;
+      return parsed as CodeCaptainConfig;
     } catch {
       return null;
     }
@@ -595,8 +595,8 @@ export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenCh
     }
   }
 
-  // 2) Migrate legacy <project>/.openchamber/openchamber.json.
-  // LEGACY_PROJECT_CONFIG: migrate project-local openchamber.json -> ~/.config/openchamber/projects/<projectId>.json
+  // 2) Migrate legacy <project>/.codecaptain/codecaptain.json.
+  // LEGACY_PROJECT_CONFIG: migrate project-local codecaptain.json -> ~/.config/codecaptain/projects/<projectId>.json
   const legacyPath = getLegacyConfigPath(projectDirectory);
   const legacyConfig = parseConfig(await readText(legacyPath));
   if (!legacyConfig) {
@@ -605,9 +605,9 @@ export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenCh
 
   // Best-effort write + delete legacy.
   try {
-    const wrote = await writeOpenChamberConfig(project, legacyConfig);
+    const wrote = await writeCodeCaptainConfig(project, legacyConfig);
     if (wrote) {
-      await deleteLegacyOpenChamberConfig(projectDirectory);
+      await deleteLegacyCodeCaptainConfig(projectDirectory);
     }
   } catch {
     // Ignore migration failures; still return legacy content.
@@ -623,9 +623,9 @@ export async function readOpenChamberConfig(project: ProjectRef): Promise<OpenCh
  * dedicated route and never round-trips them through this config write path to
  * avoid a read-then-write race clobbering a concurrent server update.
  */
-export async function writeOpenChamberConfig(
+export async function writeCodeCaptainConfig(
   project: ProjectRef,
-  config: OpenChamberConfig
+  config: CodeCaptainConfig
 ): Promise<boolean> {
   const projectDirectory = typeof project?.path === 'string' ? project.path.trim() : '';
   if (!projectDirectory) {
@@ -669,7 +669,7 @@ export async function writeOpenChamberConfig(
     }, null, 2);
     return await writeTextFile(configPath, content);
   } catch (error) {
-    console.error('Failed to write openchamber config:', error);
+    console.error('Failed to write codecaptain config:', error);
     return false;
   }
 }
@@ -677,42 +677,42 @@ export async function writeOpenChamberConfig(
 /**
  * Update specific keys in the config, preserving other values.
  */
-export async function updateOpenChamberConfig(
+export async function updateCodeCaptainConfig(
   project: ProjectRef,
-  updates: Partial<OpenChamberConfig>
+  updates: Partial<CodeCaptainConfig>
 ): Promise<boolean> {
-  const existing = await readOpenChamberConfig(project) || {};
+  const existing = await readCodeCaptainConfig(project) || {};
   const merged = { ...existing, ...updates };
-  return writeOpenChamberConfig(project, merged);
+  return writeCodeCaptainConfig(project, merged);
 }
 
 /**
  * Get worktree setup commands from config.
  */
 export async function getWorktreeSetupCommands(project: ProjectRef): Promise<string[]> {
-  const config = await readOpenChamberConfig(project);
+  const config = await readCodeCaptainConfig(project);
   return config?.['setup-worktree'] ?? [];
 }
 
 export async function saveWorktreeSetupCommands(project: ProjectRef, commands: string[]): Promise<boolean> {
   const filtered = commands.filter((cmd) => cmd.trim().length > 0);
-  return updateOpenChamberConfig(project, { 'setup-worktree': filtered });
+  return updateCodeCaptainConfig(project, { 'setup-worktree': filtered });
 }
 
 /**
  * Get this project's pinned draft welcome starters.
  */
 export async function getProjectDraftStarters(project: ProjectRef): Promise<DraftStarterRef[]> {
-  const config = await readOpenChamberConfig(project);
+  const config = await readCodeCaptainConfig(project);
   return sanitizeStarterRefs(config?.draftStarters);
 }
 
 export async function saveProjectDraftStarters(project: ProjectRef, starters: DraftStarterRef[]): Promise<boolean> {
-  return updateOpenChamberConfig(project, { draftStarters: sanitizeStarterRefs(starters) });
+  return updateCodeCaptainConfig(project, { draftStarters: sanitizeStarterRefs(starters) });
 }
 
-export async function getProjectNotesAndTodos(project: ProjectRef): Promise<OpenChamberProjectNotesTodos> {
-  const config = await readOpenChamberConfig(project);
+export async function getProjectNotesAndTodos(project: ProjectRef): Promise<CodeCaptainProjectNotesTodos> {
+  const config = await readCodeCaptainConfig(project);
   return sanitizeProjectNotesAndTodos({
     notes: config?.projectNotes,
     todos: config?.projectTodos,
@@ -721,21 +721,21 @@ export async function getProjectNotesAndTodos(project: ProjectRef): Promise<Open
 
 export async function saveProjectNotesAndTodos(
   project: ProjectRef,
-  value: OpenChamberProjectNotesTodos
+  value: CodeCaptainProjectNotesTodos
 ): Promise<boolean> {
   const sanitized = sanitizeProjectNotesAndTodos({
     notes: value.notes,
     todos: value.todos,
   });
 
-  return updateOpenChamberConfig(project, {
+  return updateCodeCaptainConfig(project, {
     projectNotes: sanitized.notes,
     projectTodos: sanitized.todos,
   });
 }
 
-export async function getProjectContextData(project: ProjectRef): Promise<OpenChamberProjectContextData> {
-  const config = await readOpenChamberConfig(project);
+export async function getProjectContextData(project: ProjectRef): Promise<CodeCaptainProjectContextData> {
+  const config = await readCodeCaptainConfig(project);
   return sanitizeProjectContextData({
     notes: config?.projectNotes,
     todos: config?.projectTodos,
@@ -743,22 +743,22 @@ export async function getProjectContextData(project: ProjectRef): Promise<OpenCh
   });
 }
 
-export async function getProjectPlanFiles(project: ProjectRef): Promise<OpenChamberProjectPlanFileLink[]> {
-  const config = await readOpenChamberConfig(project);
+export async function getProjectPlanFiles(project: ProjectRef): Promise<CodeCaptainProjectPlanFileLink[]> {
+  const config = await readCodeCaptainConfig(project);
   return sanitizeProjectPlanFileLinks(config?.projectPlanFiles);
 }
 
 export async function saveProjectPlanFiles(
   project: ProjectRef,
-  value: OpenChamberProjectPlanFileLink[]
+  value: CodeCaptainProjectPlanFileLink[]
 ): Promise<boolean> {
   const sanitized = sanitizeProjectPlanFileLinks(value);
-  return updateOpenChamberConfig(project, {
+  return updateCodeCaptainConfig(project, {
     projectPlanFiles: sanitized,
   });
 }
 
-export async function readProjectPlanFile(path: string): Promise<OpenChamberProjectPlanFile | null> {
+export async function readProjectPlanFile(path: string): Promise<CodeCaptainProjectPlanFile | null> {
   const trimmedPath = typeof path === 'string' ? path.trim() : '';
   if (!trimmedPath) {
     return null;
@@ -825,7 +825,7 @@ export async function importProjectPlanFileFromContent(
   project: ProjectRef,
   content: string,
   fallbackTitle?: string
-): Promise<OpenChamberProjectPlanFileLink | null> {
+): Promise<CodeCaptainProjectPlanFileLink | null> {
   const raw = typeof content === 'string' ? content : '';
   if (!raw.trim()) {
     return null;
@@ -839,7 +839,7 @@ export async function importProjectPlanFileFromContent(
 export async function createProjectPlanFile(
   project: ProjectRef,
   value: { title: string; body: string }
-): Promise<OpenChamberProjectPlanFileLink | null> {
+): Promise<CodeCaptainProjectPlanFileLink | null> {
   const plansDirectory = await getProjectPlansDirectory(project);
   if (!plansDirectory) {
     return null;
@@ -876,8 +876,8 @@ export async function createProjectPlanFile(
   return nextEntry;
 }
 
-export async function getProjectActionsState(project: ProjectRef): Promise<OpenChamberProjectActionsState> {
-  const config = await readOpenChamberConfig(project);
+export async function getProjectActionsState(project: ProjectRef): Promise<CodeCaptainProjectActionsState> {
+  const config = await readCodeCaptainConfig(project);
   return sanitizeProjectActionsState({
     actions: config?.projectActions,
     primaryActionId: config?.projectActionsPrimaryId,
@@ -886,14 +886,14 @@ export async function getProjectActionsState(project: ProjectRef): Promise<OpenC
 
 export async function saveProjectActionsState(
   project: ProjectRef,
-  value: OpenChamberProjectActionsState
+  value: CodeCaptainProjectActionsState
 ): Promise<boolean> {
   const sanitized = sanitizeProjectActionsState({
     actions: value.actions,
     primaryActionId: value.primaryActionId,
   });
 
-  return updateOpenChamberConfig(project, {
+  return updateCodeCaptainConfig(project, {
     projectActions: sanitized.actions,
     projectActionsPrimaryId: sanitized.primaryActionId ?? undefined,
   });
@@ -918,7 +918,7 @@ export function substituteCommandVariables(
     .replace(/\$\{ROOT_WORKTREE_PATH\}/g, variables.rootWorktreePath);
 }
 
-async function deleteLegacyOpenChamberConfig(projectDirectory: string): Promise<void> {
+async function deleteLegacyCodeCaptainConfig(projectDirectory: string): Promise<void> {
   const legacyPath = getLegacyConfigPath(projectDirectory);
   const runtimeFiles = getRuntimeFilesAPI();
 

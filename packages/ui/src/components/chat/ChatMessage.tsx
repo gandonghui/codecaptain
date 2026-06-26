@@ -679,7 +679,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         }
         if (detail.trim().toLowerCase() === 'aborted') {
             return {
-                text: 'The running turn was stopped before OpenCode could send the next message.',
+                text: 'The running turn was stopped before CodeCaptain-core could send the next message.',
                 variant: 'info' as const,
             };
         }

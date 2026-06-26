@@ -21,8 +21,8 @@ All notable changes to this project will be documented in this file.
 - Git: pushing from the Git view now syncs first, reducing rejected pushes when the branch needs to update.
 - Usage: MiniMax M3 and Token Plan usage now handle the provider's latest API response format (thanks to @baruchvitorino).
 - VSCode: font size and padding preferences now apply inside the extension webview (thanks to @Sin991114).
-- Startup: managed OpenCode server processes left behind by a previous crash are cleaned up on the next start.
-- CLI: stale server PID files are checked more carefully so unrelated processes are not mistaken for an OpenChamber server.
+- Startup: managed CodeCaptain-core server processes left behind by a previous crash are cleaned up on the next start.
+- CLI: stale server PID files are checked more carefully so unrelated processes are not mistaken for an CodeCaptain server.
 - Files: downloads and file names with non-Latin characters now handle those characters correctly in headers (thanks to @FanFan4204).
 - Mobile: subagent chevrons no longer overlap long session titles, and session grouping now matches the exact workspace directory (thanks to @weixiang1862, @lilyzhaun).
 
@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
 - Chat: the end of a streamed response is no longer occasionally cut off — messages now always settle on their complete text (thanks to @IbrahimKhan12).
 - Chat: paragraphs in assistant messages now have proper spacing instead of collapsing into a single block (thanks to @foundryseven).
 - Files: HTML, image, and PDF previews no longer cycle to "authentication required" every ~50 seconds (thanks to @bashrusakh).
-- Startup: the app starts faster by no longer waiting on default OpenCode config, while your manual and per-directory model selections are preserved.
+- Startup: the app starts faster by no longer waiting on default CodeCaptain-core config, while your manual and per-directory model selections are preserved.
 
 ## [1.13.1] - 2026-06-17
 
@@ -78,13 +78,13 @@ All notable changes to this project will be documented in this file.
 - Git/Diff: individual diff hunks can now be staged, unstaged, or discarded directly from the Changes view via `git apply`.
 - Git/Diff: added a review flow for starting a review from current changes.
 - GitHub: GitHub settings can now use credentials from the `gh` CLI when available (thanks to @tomzx).
-- Settings/MCP: importing MCP snippets from OpenCode config works again (thanks to @youzini).
+- Settings/MCP: importing MCP snippets from CodeCaptain-core config works again (thanks to @youzini).
 - Notifications: notification streams now stay connected more reliably behind proxies (thanks to @kostazol).
 - Mobile: the empty Changes view keeps a close control visible (thanks to @lilyzhaun).
 - Security: file previews and downloads now reject paths outside the allowed workspace unless access has been granted.
 - Sessions: fixed a bug where a running session would briefly flicker as idle (in the sidebar, the send/stop button, and the status row) when the app is protected by a password.
 - Desktop: you can now open developer tools from the Help menu.
-- Sessions: new draft sessions now start from the default model and agent instead of inheriting the previous session's selection, and fall back to OpenCode's own `default_agent` (and its model) when no OpenChamber default is set.
+- Sessions: new draft sessions now start from the default model and agent instead of inheriting the previous session's selection, and fall back to CodeCaptain-core's own `default_agent` (and its model) when no CodeCaptain default is set.
 - Startup: cached settings and session state now appear earlier while the live API finishes connecting.
 - Startup: the model and agent now appear faster on the initial draft — config loads under the project key up front (no reload when the draft opens) and the agent list is fetched once instead of per consumer.
 - VSCode: the extension opens faster with cached sessions, models, providers, and projects, then refreshes in the background.
@@ -122,8 +122,8 @@ All notable changes to this project will be documented in this file.
 
 ## [1.12.3] - 2026-06-05
 
-- Windows/Startup: WSL OpenCode installs are no longer detected or launched; install OpenCode natively on Windows and configure `opencode.cmd` or `opencode.exe` instead.
-- Startup: OpenCode health checks now work with OpenCode 1.15.x.
+- Windows/Startup: WSL CodeCaptain-core installs are no longer detected or launched; install CodeCaptain-core natively on Windows and configure `opencode.cmd` or `opencode.exe` instead.
+- Startup: CodeCaptain-core health checks now work with CodeCaptain-core 1.15.x.
 - Files: file trees now show directory loading errors with a retry action instead of leaving the folder empty, and slow Git ignore checks no longer block directory listings indefinitely.
 
 ## [1.12.2] - 2026-06-05
@@ -133,7 +133,7 @@ All notable changes to this project will be documented in this file.
 - Tunnels: ngrok startup failures now show the ngrok or authtoken error returned during startup.
 - Projects: the Add Project directory picker now starts with hidden files off each time it opens.
 - Chat: prompts sent while creating or switching target sessions now stay attached to the intended project directory.
-- VSCode: the extension now detects more Windows OpenCode installs from PATH, npm, Scoop, and Chocolatey.
+- VSCode: the extension now detects more Windows CodeCaptain-core installs from PATH, npm, Scoop, and Chocolatey.
 
 ## [1.12.1] - 2026-06-03
 
@@ -144,14 +144,14 @@ All notable changes to this project will be documented in this file.
 - Chat: question cards now show an error or no-longer-pending message when submit or dismiss fails instead of silently doing nothing.
 - Chat: the first prompt in a new session no longer gets stuck before sending.
 - Chat/UI: sticky user-message headers are now off by default.
-- Sessions: session titles update from live session events, and the app now consistently loads all existing OpenCode sessions.
+- Sessions: session titles update from live session events, and the app now consistently loads all existing CodeCaptain-core sessions.
 - Sessions: recent sessions now stay visible inside project groups, and new or worktree sessions stay in the correct project/worktree group on desktop, mobile, and VS Code.
-- Settings/OpenCode: OpenCode CLI path, update-notification preference, keyboard shortcuts, and protected-session settings now stay saved after changes.
+- Settings/CodeCaptain-core: CodeCaptain-core CLI path, update-notification preference, keyboard shortcuts, and protected-session settings now stay saved after changes.
 - UI/Time: the 12-hour/24-hour time preference now applies to chat timestamps, usage reset times, scheduled tasks, tunnels, passkeys, Git history, and pull-request dates.
 - Settings/Files: the default file preview setting now lives with the Chat appearance settings and applies immediately to open file tabs.
 - Preview: embedded previews now rewrite inline module imports, fixing Vite React preview pages that load root-relative modules.
 - Desktop: Desktop tunnels now serve the full app UI instead of the headless page.
-- Desktop: quitting the Desktop app now stops managed OpenCode processes more reliably, reducing leftover OpenCode processes after exit.
+- Desktop: quitting the Desktop app now stops managed CodeCaptain-core processes more reliably, reducing leftover CodeCaptain-core processes after exit.
 - Desktop: removed the legacy Tauri desktop path; Electron is now the only desktop runtime.
 
 ## [1.12.0] - 2026-06-03
@@ -162,7 +162,7 @@ All notable changes to this project will be documented in this file.
 - Chat/Input: queued messages no longer auto-send before the active session is ready, and thinking-variant choices are preserved for generated messages.
 - Chat/UI: markdown-rendered user messages now preserve line breaks.
 - Web/Browser: added a Browser feature for opening websites in the web app and sharing annotations with screenshots to agents.
-- Web/Remote Instances: added a headless web app mode, and remote instance switching now changes the OpenChamber API endpoint without loading the full remote UI.
+- Web/Remote Instances: added a headless web app mode, and remote instance switching now changes the CodeCaptain API endpoint without loading the full remote UI.
 - UI/Themes: added JetBrains Light and JetBrains Dark themes, and VS Code chat colors now map more closely to the active editor theme.
 
 ## [1.11.7] - 2026-05-27
@@ -180,7 +180,7 @@ All notable changes to this project will be documented in this file.
 
 - Settings/Plugins: added a Plugins page for managing opencode plugins, with npm update checks and user/project scopes (thanks to @Quat3rnion).
 - Tunnels: added Ngrok as a quick tunnel provider in the CLI and Desktop tunnel settings, with readiness checks (requires Ngrok cli and auth).
-- Desktop: added optional password setting in OpenChamber sessions settings for the local Desktop server.
+- Desktop: added optional password setting in CodeCaptain sessions settings for the local Desktop server.
 - Multi-Run: new multi-run sessions now appear in the session list immediately, and slash-command prompts are sent to the created run sessions correctly.
 - Mobile: restored the new-session action in the session sidebar header.
 
@@ -218,7 +218,7 @@ All notable changes to this project will be documented in this file.
 - Sessions: archived session lists handle large archives better, and sub-session expansion is kept separate between Recent and project sections (thanks to @vhqtvn).
 - Sessions: deleting or archiving a parent session now shows a descendant count that matches what will actually be removed (thanks to @vhqtvn).
 - Git: reverting a chat message now refreshes the Git changes view afterward.
-- Updates/PWA: OpenCode update and PWA install prompts can now be dismissed without reappearing repeatedly (thanks to @robertoberto).
+- Updates/PWA: CodeCaptain-core update and PWA install prompts can now be dismissed without reappearing repeatedly (thanks to @robertoberto).
 - Notifications: browser and VS Code notifications work without duplicate alerts.
 - Terminal/Mobile: the terminal viewport now stays above the mobile keyboard more consistently (thanks to @Dav1dch).
 - Usage: added Wafer.ai quota tracking and removed the duplicate Zhipu usage provider entry (thanks to @bowber).
@@ -231,7 +231,7 @@ All notable changes to this project will be documented in this file.
 - Git: commit history can now show file diffs inline (thanks to @ermanhavuc).
 - Git: branch history works better for local-only branches, and branch search fields accept typing again (thanks to @ermanhavuc).
 - Sessions: root project sessions now show up correctly in the session switcher (thanks to @isanchez404).
-- Skills: installed skills now match OpenCode's own skill list more closely.
+- Skills: installed skills now match CodeCaptain-core's own skill list more closely.
 
 ## [1.11.1] - 2026-05-15
 
@@ -242,14 +242,14 @@ All notable changes to this project will be documented in this file.
 - Chat/Shortcuts: made the agent-switching shortcut configurable and usable from the chat input/model picker.
 - Desktop/Mini Chat: added session switching and the new-session shortcut to Mini Chat, while preserving user-selected sessions during startup.
 - Preview: improved embedded preview proxying for absolute same-origin requests and WebSocket URLs, and avoided launching unrelated project actions when no dev-server action is detected.
-- Updates/Usage: added a setting to disable OpenCode update notifications, and quota reset times now display in your local timezone.
+- Updates/Usage: added a setting to disable CodeCaptain-core update notifications, and quota reset times now display in your local timezone.
 - Chat/UI: sorted-mode tool paths animate consistently, and tooltip rendering is guarded defensively.
 - Git: large change lists now display reliably, and branch selection stays hidden for non-Git draft sessions.
 - Settings/Skills: the skills catalog now keeps the selected source label visible when switching sources (thanks to @kjhq).
 
 ## [1.11.0] - 2026-05-14
 
-- Updates/OpenCode: added in-app OpenCode update checks and upgrade actions.
+- Updates/CodeCaptain-core: added in-app CodeCaptain-core update checks and upgrade actions.
 - Voice: added local Whisper speech-to-text.
 - Voice: synced speech recognition settings across devices and let server transcription finish processing audio when voice input stops (thanks to @kostazol).
 - Chat/Permissions: restored `@agent` mentions in sent messages and parent-session auto-accept for child-session permissions.
@@ -308,7 +308,7 @@ All notable changes to this project will be documented in this file.
 - Mobile/Terminal: added an opt-in keyboard resize mode and steady touch terminal input.
 - Terminal: restored focus back to terminal input after Ghostty element blur events.
 - VSCode/Reliability: aligned session status parsing and reconnect reconciliation (thanks to @vhqtvn).
-- Startup/Reliability: configured OpenCode CLI paths are now validated before managed startup, with clearer errors for missing, non-executable, or app-bundle paths.
+- Startup/Reliability: configured CodeCaptain-core CLI paths are now validated before managed startup, with clearer errors for missing, non-executable, or app-bundle paths.
 - Performance/Reliability: reduced duplicate app initialization, deferred heavier views, lowered local server status overhead, optimized markdown file-link detection, reduced sync recovery payloads, and suppressed expected missing-directory noise.
 
 ## [1.10.0] - 2026-05-05
@@ -321,8 +321,8 @@ All notable changes to this project will be documented in this file.
 - VSCode/Chat: added the currently open editor file to chat context (thanks to @daveotero).
 - UI/Settings: improved settings scrolling, empty states, and button/overlay polish (thanks to @Yabuku-xD).
 - GitHub/Git: improved fork-aware issue and pull-request listing, PR status handling, startup loading feedback, remote MCP headers, and long model ID handling (thanks to @corrm, @ricautomation, @yart).
-- Reliability/Streaming: reconnects now recover immediately after OS wake-from-sleep, long agent sessions avoid streaming hangs, concurrent sessions sharing the same provider are throttled more safely, and model metadata refreshes after OpenCode restarts (thanks to @jwcrystal, @pasta-paul, @Yabuku-xD).
-- Onboarding/Updates/Mobile: added OpenCode CLI auto-detection during onboarding, cross-checks update prompts against npm, and improved iPad/tablet controls for fewer false update notices and smooth touch use (thanks to @IslamNofl).
+- Reliability/Streaming: reconnects now recover immediately after OS wake-from-sleep, long agent sessions avoid streaming hangs, concurrent sessions sharing the same provider are throttled more safely, and model metadata refreshes after CodeCaptain-core restarts (thanks to @jwcrystal, @pasta-paul, @Yabuku-xD).
+- Onboarding/Updates/Mobile: added CodeCaptain-core CLI auto-detection during onboarding, cross-checks update prompts against npm, and improved iPad/tablet controls for fewer false update notices and smooth touch use (thanks to @IslamNofl).
 
 ## [1.9.10] - 2026-04-28
 
@@ -332,7 +332,7 @@ All notable changes to this project will be documented in this file.
 - Chat/UI: improved split-response action placement, error-message alignment, tab close affordances, and overscroll behavior.
 - Sessions/Sidebar: fixed stale session, folder, project, and worktree state after mutations, and polished pinned-session indicators (thanks to @corrm, @Yabuku-xD).
 - VSCode/Windows: normalized Windows drive-letter paths in extension webviews and added MiniMax/Ollama quota support.
-- Reliability/Startup: hardened managed OpenCode startup, preserved shell PATH reliably, ignored stale downgrade update prompts, and improved stream/proxy recovery with heartbeat support.
+- Reliability/Startup: hardened managed CodeCaptain-core startup, preserved shell PATH reliably, ignored stale downgrade update prompts, and improved stream/proxy recovery with heartbeat support.
 
 ## [1.9.9] - 2026-04-26
 
@@ -365,7 +365,7 @@ All notable changes to this project will be documented in this file.
 - Sessions/UI: added bulk session selection in the sidebar and fixed pinned sessions (thanks to @yart).
 - Files/Git: added a file-change summary bar and auto-refresh for open files changed outside the app.
 - Git/Worktrees: improved branch/worktree reliability by allowing checkout with uncommitted changes, tightening worktree cache invalidation, and reducing incorrect remote prefetches (thanks to @jwcrystal, @jasonalsing).
-- Settings/MCP: improved MCP auth flow with better remote-config support and clearer diagnostics, and aligned config resolution with OpenCode behavior (thanks to @daveotero, @cyan).
+- Settings/MCP: improved MCP auth flow with better remote-config support and clearer diagnostics, and aligned config resolution with CodeCaptain-core behavior (thanks to @daveotero, @cyan).
 - Reliability/Chat: hardened bootstrap and stream-connection recovery, preserved session/connect state, and reduced streaming UI churn.
 - Web/PWA: added install orientation controls and fixed loopback-origin handling for web push notifications in local setups (thanks to @vhqtvn, @yart).
 
@@ -392,7 +392,7 @@ All notable changes to this project will be documented in this file.
 - Sessions/UI: kept active sessions visible in Recent, auto-expanded parent groups when opening subagent sessions, and hid empty archived/folder sections (thanks to @jwcrystal).
 - Git/UI: restored Git changes panel visibility and sidebar sync (thanks to @jwcrystal).
 - Desktop/Startup: delivered a more guided first-launch and smart recovery flow, plus startup and remote-window interaction fixes to reduce early-session friction (thanks to @jwcrystal).
-- Usage: added Zhipu AI Coding Plan tracking and restored model-variant compatibility with older OpenCode runtimes (thanks to @cainiao1992, @Chi-square-test).
+- Usage: added Zhipu AI Coding Plan tracking and restored model-variant compatibility with older CodeCaptain-core runtimes (thanks to @cainiao1992, @Chi-square-test).
 
 ## [1.9.4] - 2026-04-07
 
@@ -419,7 +419,7 @@ All notable changes to this project will be documented in this file.
 - Mobile/Settings: fixed lingering settings drawers and removed extra top spacing for a cleaner, less obstructed mobile layout (thanks to @Jovines).
 - Git/Worktrees: fixed worktree detection and reset stale integration state when switching contexts.
 - Desktop/Settings: window vibrancy now correctly controls macOS window transparency, and settings copy now clarifies when full transparency changes take effect.
-- Reliability/Proxy: hardened OpenCode proxy header handling (including identity-encoding normalization, compression-header cleanup, hop-by-hop response-header stripping) and suppressed expected SSE close noise.
+- Reliability/Proxy: hardened CodeCaptain-core proxy header handling (including identity-encoding normalization, compression-header cleanup, hop-by-hop response-header stripping) and suppressed expected SSE close noise.
 - Reliability/Proxy: restored proxied chat event streaming.
 - Terminal/Reliability: switched terminal transport to a pure WebSocket path with fallback handling.
 - Usage/Providers: added ZhipuAI quota tracking and fixed MiniMax coding-plan and GitHub Copilot overusage calculations (thanks to @kalac2232, @baruchvitorino, @ebrainte).
@@ -464,7 +464,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.8.7] - 2026-03-13
 
-- CLI: fixed a startup regression in global npm/bun installs where wrapper or symlinked `openchamber` entrypoints could exit without output on commands like `--version` or `status`.
+- CLI: fixed a startup regression in global npm/bun installs where wrapper or symlinked `codecaptain` entrypoints could exit without output on commands like `--version` or `status`.
 - CLI: hardened entrypoint detection across direct, symlinked, and shim-based launches to keep startup behavior consistent across package managers (thanks to @shekohex).
 - Windows/Web: daemon startup and Git operations no longer flash extra console windows (thanks to @SergioChan).
 - Deployment/Docker: improved `docker run` startup behavior and entrypoint handling (thanks to @nzlov).
@@ -564,7 +564,7 @@ All notable changes to this project will be documented in this file.
 - Chat: upgraded Mermaid rendering with a cleaner diagram view plus quick copy/download actions (thanks to @shekohex).
 - Notifications: improved child-session notification detection to reduce missed or misclassified subtask updates (thanks to @Jovines).
 - Deployment: added Docker deployment support with safer container defaults and terminal shell fallback (thanks to @nzlov).
-- Reliability: improved Windows compatibility across git status checks, OpenCode startup, path normalization, and session merge behavior (thanks to @mmereu).
+- Reliability: improved Windows compatibility across git status checks, CodeCaptain-core startup, path normalization, and session merge behavior (thanks to @mmereu).
 - Usage: added MiniMax coding-plan quota provider support (thanks to @nzlov).
 - Usage: added Ollama Cloud quota provider support (thanks to @iamhenry).
 
@@ -604,7 +604,7 @@ All notable changes to this project will be documented in this file.
 - Terminal: restored terminal text copy behavior (thanks to @shekohex).
 - UI: unified clipboard copy behavior across Desktop app, Web app, and VS Code extension.
 - Reliability: improved startup environment detection by capturing login-shell environment snapshots.
-- Reliability: refactored OpenCode config/auth integration into domain modules for steady provider auth and command loading flows (thanks to @nelsonPires5).
+- Reliability: refactored CodeCaptain-core config/auth integration into domain modules for steady provider auth and command loading flows (thanks to @nelsonPires5).
 
 ## [1.7.2] - 2026-02-20
 
@@ -621,7 +621,7 @@ All notable changes to this project will be documented in this file.
 - Chat: added a shell mode triggered by leading `!`, with inline output visibility/copy.
 - Chat: improved delegated-task clarity with richer subtask bubbles, better task-detail rendering, and parent-chat surfacing for child permission/question requests.
 - Chat: improved `@` mention autocomplete by prioritizing agents and cleaning up ordering.
-- Skills: discovery now uses OpenCode API as the source of truth with safer fallback scanning.
+- Skills: discovery now uses CodeCaptain-core API as the source of truth with safer fallback scanning.
 - Skills: upgraded editing/install UX with better code editing, syntax-aware related files, and clearer location targeting across user/project .opencode and .agents scopes.
 - Mobile: fixed accidental abort right after tapping Send on touch devices.
 - Maintenance: removed deprecated GitHub Actions cloud runtime assets and docs to reduce setup confusion (thanks to @yulia-ivashko).
@@ -632,7 +632,7 @@ All notable changes to this project will be documented in this file.
 - Chat: Mermaid diagrams now render inline in assistant messages, with quick copy/download actions for easier sharing.
 - UI: added a context overview panel with token usage, cost breakdown, and raw message inspection to make session debugging easier.
 - Sessions: project icon and color customizations now persist reliably across restarts.
-  **- Reliability: managed local OpenCode runtimes now use rotated secure auth and tighter lifecycle control across runtimes.**
+  **- Reliability: managed local CodeCaptain-core runtimes now use rotated secure auth and tighter lifecycle control across runtimes.**
 - Git/GitHub: improved backend reliability for repository and auth operations (thanks to @nelsonPires5).
 
 ## [1.6.9] - 2026-02-16
@@ -647,7 +647,7 @@ All notable changes to this project will be documented in this file.
 - Sessions: introduced the ability to pin sessions within your groups for easy access.
 - Settings: added a configurable Zen model for commit messages generation and summarization of notifications (thanks to @gsxdsm).
 - Usage: added NanoGPT quota support and hardened provider handling (thanks to @nelsonPires5).
-- Reliability: startup now auto-detects and safely connects to an existing OpenCode server.
+- Reliability: startup now auto-detects and safely connects to an existing CodeCaptain-core server.
 - Desktop: restored desktop window geometry and position (thanks to @yulia-ivashko).
 - Mobile: fixes for small-screen editor, terminal, and layout overlap issues (thanks to @gsxdsm, @nelsonPires5).
 
@@ -687,11 +687,11 @@ All notable changes to this project will be documented in this file.
 - Usage: added per-model quota breakdowns with collapsible groups, and fixed provider dropdown scrolling (thanks to @nelsonPires5, @gsxdsm).
 - Terminal: improved input responsiveness with a persistent low-latency transport for steady typing (thanks to @shekohex).
 - Mobile: fixed chat input layout issues on small screens (thanks to @nelsonPires5).
-- Reliability: fixed OpenCode auth pass-through and proxy env handling to reduce intermittent connection/auth issues (thanks to @gsxdsm).
+- Reliability: fixed CodeCaptain-core auth pass-through and proxy env handling to reduce intermittent connection/auth issues (thanks to @gsxdsm).
 
 ## [1.6.5] - 2026-02-6
 
-- Settings: added an OpenCode CLI path override.
+- Settings: added an CodeCaptain-core CLI path override.
 - Chat: added arrow-key prompt history and an optional setting to persist input drafts between restarts (thanks to @gsxdsm).
 - Chat: thinking/reasoning blocks now render consistently, and justification visibility settings now apply reliably (thanks to @gsxdsm).
 - Diff/Plans: added inline comment drafts (thanks to @nelsonPires5).
@@ -699,11 +699,11 @@ All notable changes to this project will be documented in this file.
 - Worktrees: improved worktree flow reliability, including cleaner handling when a worktree was already removed outside the app (thanks to @gsxdsm).
 - Terminal: improved Android keyboard behavior and removed distracting native caret blink in terminal inputs (thanks to @shekohex).
 - UI: added Vitesse Dark and Vitesse Light theme presets.
-- Reliability: improved OpenCode binary resolution and HOME-path handling across runtimes for steady local startup.
+- Reliability: improved CodeCaptain-core binary resolution and HOME-path handling across runtimes for steady local startup.
 
 ## [1.6.4] - 2026-02-5
 
-- Desktop: switch between local and remote OpenChamber instances, plus a thinner runtime.
+- Desktop: switch between local and remote CodeCaptain instances, plus a thinner runtime.
 - VSCode: improved Windows PATH resolution and cold-start readiness checks to reduce "stuck loading" for sessions/models/agents.
 - Mobile: split Agent/Model controls and a quick commands button with autocomplete (Commands/Agents/Files) for easier input (thanks to @Jovines, @gsxdsm).
 - Chat: select text in messages to quickly add it to your prompt or start a new session (thanks to @gsxdsm).
@@ -727,7 +727,7 @@ All notable changes to this project will be documented in this file.
 - Settings: now opens in a windowed dialog on desktop with backdrop blur.
 - Terminal: added tabbed interface to manage multiple terminal sessions per directory.
 - Files: added multi-file tabs on desktop and dropdown selector on mobile (thanks to @nelsonPires5).
-- UI: introduced a token-based theming system, 18 themes with light/dark variants, and custom user themes from `~/.config/openchamber/themes`.
+- UI: introduced a token-based theming system, 18 themes with light/dark variants, and custom user themes from `~/.config/codecaptain/themes`.
 - Diff: optimized stacked view with worker-pool processing and lazy DOM rendering for smooth scrolling.
 - Worktrees: workspace path now resolves correctly when using git worktrees (thanks to @nelsonPires5).
 - Projects: fixed directory creation outside workspace in the Add Project modal (thanks to @nelsonPires5).
@@ -757,7 +757,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.5.9] - 2026-01-28
 
-- Worktrees: migrated to the OpenCode SDK worktree implementation; sessions in worktrees are now completely isolated.
+- Worktrees: migrated to the CodeCaptain-core SDK worktree implementation; sessions in worktrees are now completely isolated.
 - Git: integrate worktree commits back to a target branch with commit previews and guided conflict handling.
 - Files: toggle markdown preview when viewing files (thanks to @Jovines).
 - Files: open the file viewer in fullscreen for focused review and editing (thanks to @TaylorBeeston).
@@ -807,7 +807,7 @@ All notable changes to this project will be documented in this file.
 - UI: updated header and sidebar layout for a cleaner, tighter workspace fit (thanks to @TheRealAshik).
 - Diff: large diffs now lazy-load to avoid freezes (thanks to @Jovines).
 - Web: added Background notifications for PWA.
-- Reliability: connect to external OpenCode servers without auto-start and fixed subagent crashes (thanks to @TaylorBeeston).
+- Reliability: connect to external CodeCaptain-core servers without auto-start and fixed subagent crashes (thanks to @TaylorBeeston).
 
 ## [1.5.3] - 2026-01-20
 
@@ -830,12 +830,12 @@ All notable changes to this project will be documented in this file.
 - Chat: optimized message loading for opening sessions.
 - UI: added one-click diagnostics copy in the About dialog.
 - VSCode: tuned layout breakpoint and server readiness timeout for steady startup.
-- Reliability: improved OpenCode process cleanup to reduce orphaned servers.
+- Reliability: improved CodeCaptain-core process cleanup to reduce orphaned servers.
 
 ## [1.5.1] - 2026-01-16
 
-- Desktop: fixed orphaned OpenCode processes not being cleaned up on restart or exit.
-- OpenCode: fixed a crash when reloading configuration.
+- Desktop: fixed orphaned CodeCaptain-core processes not being cleaned up on restart or exit.
+- CodeCaptain-core: fixed a crash when reloading configuration.
 
 ## [1.5.0] - 2026-01-16
 
@@ -844,7 +844,7 @@ All notable changes to this project will be documented in this file.
 - Git Identities: added "default identity" setting with one-click set/unset and automatic local identity detection.
 - VSCode: improved server management to ensure it initializes within the workspace directory with context-aware readiness checks.
 - VSCode: added responsive layout with sessions sidebar + chat side-by-side when wide, compact header, and streamlined settings.
-- Web/VSCode: fixed orphaned OpenCode processes not being cleaned up on restart or exit.
+- Web/VSCode: fixed orphaned CodeCaptain-core processes not being cleaned up on restart or exit.
 - Web: the server now automatically resolves and uses an available port if the default is occupied.
 - Stability: fixed heartbeat race condition causing session stalls during long tasks (thanks to @tybradle).
 - Desktop: fixed commands for worktree setup access to PATH.
@@ -875,7 +875,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.4.6] - 2026-01-09
 
-- VSCode/Web: switched OpenCode CLI management to the SDK.
+- VSCode/Web: switched CodeCaptain-core CLI management to the SDK.
 - Input: removed auto-complete and auto-correction.
 - Shortcuts: switched the agent cycling shortcut from Shift+Tab back to Tab.
 - Chat: added question tool support with a rich UI for interaction.
@@ -918,7 +918,7 @@ All notable changes to this project will be documented in this file.
 - Added `/undo` and `/redo` commands for reverting and restoring messages in a session (thanks to @aptdnfapt).
 - Added fork button on user messages to create a new session from any point (thanks to @aptdnfapt).
 - Desktop app: keyboard shortcuts now use Cmd on macOS and Ctrl on web/other platforms (thanks to @sakhnyuk).
-- Migrated to OpenCode SDK v2 with improved API types and streaming.
+- Migrated to CodeCaptain-core SDK v2 with improved API types and streaming.
 
 ## [1.4.1] - 2026-01-02
 
@@ -945,7 +945,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.9] - 2025-12-30
 
-- Added skills management to settings with the ability to create, edit, and delete skills (make sure you have the latest OpenCode version for skills support).
+- Added skills management to settings with the ability to create, edit, and delete skills (make sure you have the latest CodeCaptain-core version for skills support).
 - Added Skills catalog functionality for discovering and installing skills from external sources.
 - VS Code extension: added right-click context menu with "Add to Context," "Explain," and "Improve Code" actions (thanks to @wienans).
 
@@ -953,9 +953,9 @@ All notable changes to this project will be documented in this file.
 
 - Added Intel Mac (x86_64) support for the desktop application (thanks to @rothnic).
 - Build workflow now generates separate builds for Apple Silicon (arm64) and Intel (x86_64) Macs (thanks to @rothnic).
-- Improved dev server HMR by reusing a healthy OpenCode process to avoid zombie instances.
+- Improved dev server HMR by reusing a healthy CodeCaptain-core process to avoid zombie instances.
 - Added queued message mode with chips, batching, and idle auto‑send (including attachments).
-- Added queue mode toggle to OpenChamber settings (chat section) with persistence across runtimes.
+- Added queue mode toggle to CodeCaptain settings (chat section) with persistence across runtimes.
 - Fixed scroll position persistence for active conversation turns across session switches.
 - Refactored Agents/Commands management with ability to configure project/user scopes.
 
@@ -975,7 +975,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.5] - 2025-12-26
 
-- Added Nushell support for OpenCode CLI operations.
+- Added Nushell support for CodeCaptain-core CLI operations.
 - Improved file search with fuzzy matching capabilities.
 - Enhanced mobile responsiveness in chat controls.
 - Fixed workspace switching performance and API health checks.
@@ -992,8 +992,8 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.3] - 2025-12-25
 
-- Updated OpenCode SDK to 1.0.185 across all app versions.
-- VS Code extension: fixed startup, more reliable OpenCode CLI/API management, and stabilized API proxying/streaming.
+- Updated CodeCaptain-core SDK to 1.0.185 across all app versions.
+- VS Code extension: fixed startup, more reliable CodeCaptain-core CLI/API management, and stabilized API proxying/streaming.
 - VS Code extension: added an animated loading screen and introduced command for status/debug output.
 - Fixed session activity tracking.
 - Fixed directory path handling (including `~` expansion) to prevent invalid paths and related Git/worktree errors.
@@ -1003,7 +1003,7 @@ All notable changes to this project will be documented in this file.
 ## [1.3.2] - 2025-12-22
 
 - Fixed new bug session when switching directories.
-- Updated OpenCode SDK to the latest version.
+- Updated CodeCaptain-core SDK to the latest version.
 
 ## [1.3.1] - 2025-12-22
 
@@ -1125,7 +1125,7 @@ All notable changes to this project will be documented in this file.
 ## [1.1.0] - 2025-12-13
 
 - Added assistant answer fork flow.
-- Added OpenChamber VS Code extension with editor integration: file picker, click-to-open in tool parts.
+- Added CodeCaptain VS Code extension with editor integration: file picker, click-to-open in tool parts.
 - Improved scroll performance with force flag and RAF placeholder.
 - Added git polling backoff optimization.
 
@@ -1138,13 +1138,13 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.8] - 2025-12-08
 
-- Added fallback detection for OpenCode CLI in `~/.opencode/bin`.
+- Added fallback detection for CodeCaptain-core CLI in `~/.opencode/bin`.
 - Added window focus after app restart/update.
 - Adapted traffic lights position and corner radius for older macOS versions.
 
 ## [1.0.7] - 2025-12-08
 
-- Optimized OpenCode binary detection.
+- Optimized CodeCaptain-core binary detection.
 - Adjusted app update experience.
 
 ## [1.0.6] - 2025-12-08
@@ -1172,6 +1172,6 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.1] - 2025-12-07
 
-- Initial public release of OpenChamber web and desktop packages in a unified monorepo.
+- Initial public release of CodeCaptain web and desktop packages in a unified monorepo.
 - Added GitHub Actions release pipeline with macOS signing/notarization, npm publish, and release asset uploads.
-- Introduced OpenCode agent chat experience with section-based navigation, theming, and session persistence.
+- Introduced CodeCaptain-core agent chat experience with section-based navigation, theming, and session persistence.

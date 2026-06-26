@@ -104,7 +104,7 @@ Covered pages/items so far:
 
 - `appearance`: themes, localization, PWA/mobile-only controls, layout controls, navigation controls, usage reports.
 - `chat`: render mode, transport, reasoning, layout/message toggles, mobile status bar, dotfiles, queue/draft/spellcheck.
-- `sessions`: defaults, retention, desktop network controls, OpenCode CLI controls.
+- `sessions`: defaults, retention, desktop network controls, CodeCaptain-core CLI controls.
 - `notifications`: delivery, events, background push.
 - `git`: GitHub account, identities, changes view, Gitmoji, gitignored files.
 - `usage`: header menu visibility, model quotas section.

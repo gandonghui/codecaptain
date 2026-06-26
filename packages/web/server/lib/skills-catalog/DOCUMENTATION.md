@@ -1,7 +1,7 @@
 # Skills Catalog Module Documentation
 
 ## Purpose
-This module provides skill discovery, scanning, and installation capabilities for OpenCode. It supports multiple skill sources including git repositories and the ClawdHub registry, with caching and conflict resolution for skill installation.
+This module provides skill discovery, scanning, and installation capabilities for CodeCaptain-core. It supports multiple skill sources including git repositories and the ClawdHub registry, with caching and conflict resolution for skill installation.
 
 ## Entrypoints and structure
 - `packages/web/server/lib/skills-catalog/`: Skills catalog module directory containing all skill-related functionality.

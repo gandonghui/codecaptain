@@ -26,7 +26,7 @@ Quality checks before editing:
 - For every VS Code bullet, verify the change applies to the extension, not just shared web UI or server code. When unsure, leave it out of @packages/vscode/CHANGELOG.md.
 - Do not mention low-level mechanics such as "local refs first", "source of truth", "route", "store", "cache", "payload", or "ref resolution". Translate only when there is a clear user-facing symptom.
 - Do not bundle unrelated changes just to reduce bullet count. It is better to omit minor internal fixes than to create a vague catch-all sentence.
-- Avoid LinkedIn-style language. Bad: "commit review is faster and branch history is more reliable." Better: "commit history can now show file diffs inline." Bad: "installed-state accuracy is improved." Better: "the skills list now matches OpenCode's installed skills more closely."
+- Avoid LinkedIn-style language. Bad: "commit review is faster and branch history is more reliable." Better: "commit history can now show file diffs inline." Bad: "installed-state accuracy is improved." Better: "the skills list now matches CodeCaptain-core's installed skills more closely."
 
 Determine the base version:
 - Use the latest tag (ex: `v1.3.2`) as the base.

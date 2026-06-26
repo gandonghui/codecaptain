@@ -587,7 +587,7 @@ export const registerOpenCodeProxy = (app, deps) => {
           return null;
         });
 
-        const settingsPath = path.join(os.homedir(), '.config', 'openchamber', 'settings.json');
+        const settingsPath = path.join(os.homedir(), '.config', 'codecaptain', 'settings.json');
         let projectDirs = [];
         try {
           const settingsRaw = fs.readFileSync(settingsPath, 'utf8');

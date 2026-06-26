@@ -10,7 +10,7 @@
 2. electron-builder 通过 `build.extraResources` 把该目录打进安装包，
    运行时位于 `<安装目录>/resources/opencode/opencode.exe`。
 3. 应用启动时，`main.mjs` 的 `applyBundledOpencodeBinary()` 检测到这个二进制，
-   就把环境变量 `OPENCHAMBER_OPENCODE_BIN` 指向它。
+   就把环境变量 `CODECAPTAIN_OPENCODE_BIN` 指向它。
    该变量在 opencode 解析逻辑里优先级最高，所以会直接用内置版本。
    （用户若自己配置了 opencode 路径，仍然以用户配置为准，内置版只兜底。）
 
@@ -47,7 +47,7 @@ bun run electron:build
 它会依次：构建 UI → 打包 main → 重建原生模块 →
 **vendor opencode（拷贝二进制）** → 跑 electron-builder。
 
-产物在 `packages/electron/dist/`，例如 `OpenChamber-<版本>-win-x64.exe`。
+产物在 `packages/electron/dist/`，例如 `CodeCaptain-<版本>-win-x64.exe`。
 
 ### 指定 opencode 来源
 
@@ -55,8 +55,8 @@ bun run electron:build
 
 ```bash
 # 方式 A：环境变量
-set OPENCHAMBER_OPENCODE_SOURCE=D:\tools\opencode.exe   # cmd
-$env:OPENCHAMBER_OPENCODE_SOURCE="D:\tools\opencode.exe" # PowerShell
+set CODECAPTAIN_OPENCODE_SOURCE=D:\tools\opencode.exe   # cmd
+$env:CODECAPTAIN_OPENCODE_SOURCE="D:\tools\opencode.exe" # PowerShell
 bun run electron:build
 
 # 方式 B：单独先跑 vendor，再构建
@@ -73,7 +73,7 @@ bun run electron:build
 发布给同事的安装包必须自带 opencode，建议开启硬校验，找不到就直接构建失败：
 
 ```bash
-set OPENCHAMBER_REQUIRE_BUNDLED_OPENCODE=1   # cmd
+set CODECAPTAIN_REQUIRE_BUNDLED_OPENCODE=1   # cmd
 bun run electron:build
 ```
 
@@ -82,7 +82,7 @@ bun run electron:build
 1. 构建日志里应出现 `[vendor-opencode] bundled opencode ready: ...`。
 2. 安装后检查 `<安装目录>\resources\opencode\opencode.exe` 存在。
 3. 启动应用，在日志里应看到 `[desktop] Using bundled opencode CLI: ...`
-   （`electron-log` 的日志路径，应用名 `OpenChamber`）。
+   （`electron-log` 的日志路径，应用名 `CodeCaptain`）。
 4. 在一台**没装过 opencode、PATH 里也没有**的干净机器上安装验证开箱即用。
 
 ## 关键文件
@@ -93,7 +93,7 @@ bun run electron:build
 | `resources/opencode/` | 打包进安装包的 opencode 目录（由 vendor 脚本填充） |
 | `package.json` → `build.extraResources` | 把上面目录打进安装包 |
 | `package.json` → `scripts.package` | 在 electron-builder 之前调用 vendor 步骤 |
-| `main.mjs` → `applyBundledOpencodeBinary()` | 运行时把 `OPENCHAMBER_OPENCODE_BIN` 指向内置二进制 |
+| `main.mjs` → `applyBundledOpencodeBinary()` | 运行时把 `CODECAPTAIN_OPENCODE_BIN` 指向内置二进制 |
 
 ## 注意
 

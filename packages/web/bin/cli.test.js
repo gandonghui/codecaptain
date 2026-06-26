@@ -18,10 +18,10 @@ describe('cli args', () => {
   });
 
   it('parses explicit connect-url server overrides', () => {
-    const parsed = parseArgs(['connect-url', '--server', 'https://openchamber.example.com', '--port', '3002']);
+    const parsed = parseArgs(['connect-url', '--server', 'https://codecaptain.example.com', '--port', '3002']);
 
     expect(parsed.command).toBe('connect-url');
-    expect(parsed.options.server).toBe('https://openchamber.example.com');
+    expect(parsed.options.server).toBe('https://codecaptain.example.com');
     expect(parsed.options.port).toBe(3002);
   });
 
@@ -97,26 +97,26 @@ describe('network-exposed auth validation', () => {
   });
 
   it('allows explicit unsafe LAN override from process env only', () => {
-    const previous = process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
-    process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN = 'true';
+    const previous = process.env.CODECAPTAIN_ALLOW_UNAUTHENTICATED_LAN;
+    process.env.CODECAPTAIN_ALLOW_UNAUTHENTICATED_LAN = 'true';
     try {
       expect(() => assertAuthenticatedNetworkExposure({ host: '0.0.0.0' })).not.toThrow();
     } finally {
       if (typeof previous === 'string') {
-        process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN = previous;
+        process.env.CODECAPTAIN_ALLOW_UNAUTHENTICATED_LAN = previous;
       } else {
-        delete process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
+        delete process.env.CODECAPTAIN_ALLOW_UNAUTHENTICATED_LAN;
       }
     }
   });
 });
 
 describe('cli entry detection', () => {
-  const modulePath = '/tmp/openchamber/bin/cli.js';
+  const modulePath = '/tmp/codecaptain/bin/cli.js';
   const moduleUrl = pathToFileURL(modulePath).href;
 
   it('resolves symlinked entry paths before comparing', () => {
-    const symlinkPath = '/usr/local/bin/openchamber';
+    const symlinkPath = '/usr/local/bin/codecaptain';
     const realpath = (filePath) => {
       if (filePath === path.resolve(symlinkPath)) {
         return modulePath;
@@ -148,8 +148,8 @@ describe('cli entry detection', () => {
   });
 
   it('accepts wrapper binary name fallback when requested', () => {
-    const wrapperPath = '/home/user/.local/bin/openchamber';
-    expect(isModuleCliExecution(wrapperPath, moduleUrl, undefined, 'openchamber')).toBe(true);
+    const wrapperPath = '/home/user/.local/bin/codecaptain';
+    expect(isModuleCliExecution(wrapperPath, moduleUrl, undefined, 'codecaptain')).toBe(true);
   });
 
   it('normalizes direct paths when realpath fails', () => {
@@ -163,10 +163,10 @@ describe('cli entry detection', () => {
 });
 
 describe('isOpenchamberCmdline', () => {
-  it('accepts OpenChamber CLI and daemon cmdlines', () => {
-    expect(isOpenchamberCmdline('node /x/@openchamber/web/bin/cli.js serve')).toBe(true);
-    expect(isOpenchamberCmdline('node /x/@openchamber/web/server/index.js --port 9090')).toBe(true);
-    expect(isOpenchamberCmdline('bun /home/u/projects/openchamber/packages/web/server/index.js --port 3001')).toBe(true);
+  it('accepts CodeCaptain CLI and daemon cmdlines', () => {
+    expect(isOpenchamberCmdline('node /x/@codecaptain/web/bin/cli.js serve')).toBe(true);
+    expect(isOpenchamberCmdline('node /x/@codecaptain/web/server/index.js --port 9090')).toBe(true);
+    expect(isOpenchamberCmdline('bun /home/u/projects/codecaptain/packages/web/server/index.js --port 3001')).toBe(true);
   });
 
   it('rejects recycled and unrelated processes (issue #1721)', () => {
@@ -186,7 +186,7 @@ describe('isOpenchamberProcessRunning', () => {
   // platforms a live but unrelated process (a recycled stale PID) must read as
   // not-running so it can't trip the "already running" guard (issue #1721).
   it.skipIf(process.platform !== 'linux' && process.platform !== 'darwin')(
-    'returns false for a live non-OpenChamber PID',
+    'returns false for a live non-CodeCaptain PID',
     async () => {
       const child = spawn('sleep', ['30'], { stdio: 'ignore' });
       try {
