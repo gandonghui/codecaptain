@@ -11,8 +11,8 @@ export const flexokiDarkTheme = withPrColors(flexokiDarkRaw as Theme);
 export const codecaptainLightTheme = withPrColors(codecaptainLightRaw as Theme);
 export const codecaptainDarkTheme = withPrColors(codecaptainDarkRaw as Theme);
 
-export const DEFAULT_LIGHT_THEME_ID = 'flexoki-light' as const;
-export const DEFAULT_DARK_THEME_ID = 'flexoki-dark' as const;
+export const DEFAULT_LIGHT_THEME_ID = 'codecaptain-light' as const;
+export const DEFAULT_DARK_THEME_ID = 'codecaptain-dark' as const;
 
 export const themes: Theme[] = [
   codecaptainLightTheme,

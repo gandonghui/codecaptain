@@ -2,7 +2,7 @@
   "name": "codecaptain",
   "displayName": "CodeCaptain",
   "description": "%extension.description%",
-  "version": "1.13.3",
+  "version": "0.1.0",
   "publisher": "fedaykindev",
   "private": true,
   "repository": {

@@ -42,7 +42,6 @@ const traySvg = srcSvg.replace(/rgb\(0,0,0\)/g, '#ffffff').replace(/rgb\(115,68,
 
 const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
 
-// Render the mark centred in a size x size canvas with a margin.
 const renderSquare = async (svg, size, background) => {
   const inner = Math.round(size * MARGIN);
   const pad = Math.floor((size - inner) / 2);
@@ -50,7 +49,21 @@ const renderSquare = async (svg, size, background) => {
     .resize(inner, inner, { fit: 'contain', background: transparent })
     .png()
     .toBuffer();
-  return sharp({ create: { width: size, height: size, channels: 4, background } })
+    
+  if (background === transparent) {
+    return sharp({ create: { width: size, height: size, channels: 4, background } })
+      .composite([{ input: mark, left: pad, top: pad }])
+      .png()
+      .toBuffer();
+  }
+
+  const rx = Math.round(size * 0.2246);
+  const strokeW = Math.max(1, Math.round(size * (4 / 512)));
+  const bgSvg = Buffer.from(`<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="${strokeW/2}" y="${strokeW/2}" width="${size - strokeW}" height="${size - strokeW}" rx="${rx}" fill="${background}" stroke="#EBE8F2" stroke-width="${strokeW}"/>
+  </svg>`);
+
+  return sharp(bgSvg)
     .composite([{ input: mark, left: pad, top: pad }])
     .png()
     .toBuffer();
@@ -84,6 +97,7 @@ const pngsToIco = (images) => {
 };
 
 const main = async () => {
+  fs.rmSync(trayDir, { recursive: true, force: true });
   fs.mkdirSync(trayDir, { recursive: true });
 
   // App icon (.ico) + icon.png — white background so it is legible everywhere.
@@ -96,13 +110,80 @@ const main = async () => {
 
   // Tray icons — white silhouette on transparent. idle/unseen/breath all static.
   const trayPng = await renderSquare(traySvg, TRAY_SIZE, transparent);
+  const trayPng2x = await renderSquare(traySvg, TRAY_SIZE * 2, transparent);
+  
   fs.writeFileSync(path.join(trayDir, 'trayTemplate-idle.png'), trayPng);
+  fs.writeFileSync(path.join(trayDir, 'trayTemplate-idle@2x.png'), trayPng2x);
   fs.writeFileSync(path.join(trayDir, 'trayTemplate-unseen.png'), trayPng);
+  fs.writeFileSync(path.join(trayDir, 'trayTemplate-unseen@2x.png'), trayPng2x);
   for (let i = 0; i < TRAY_BREATH_FRAMES; i++) {
-    fs.writeFileSync(path.join(trayDir, `trayTemplate-breath-${String(i).padStart(2, '0')}.png`), trayPng);
+    const padded = String(i).padStart(2, '0');
+    fs.writeFileSync(path.join(trayDir, `trayTemplate-breath-${padded}.png`), trayPng);
+    fs.writeFileSync(path.join(trayDir, `trayTemplate-breath-${padded}@2x.png`), trayPng2x);
   }
 
-  console.log(`[gen-icons] wrote icon.ico (${ICO_SIZES.join(',')}), icon.png, and ${2 + TRAY_BREATH_FRAMES} tray frames.`);
+  console.log(`[gen-icons] wrote icon.ico (${ICO_SIZES.join(',')}), icon.png, and tray frames.`);
+  
+  // === macOS AppIcon Assets Generation ===
+  const macAssetsDir = path.join(iconsDir, 'AppIcon.icon', 'Assets');
+  if (fs.existsSync(macAssetsDir)) {
+    console.log('[gen-icons] generating macOS AppIcon glyphs...');
+    // Mac App Icon layers (for macOS 11+ style icons in Xcode actool)
+    // Dark mode: replace black with white, keep purple.
+    const darkGlyphSvg = srcSvg.replace(/rgb\(0,0,0\)/g, '#ffffff');
+    const renderMacGlyph = async (svgStr, size) => sharp(Buffer.from(svgStr)).resize(size, size, { fit: 'contain', background: transparent }).png().toBuffer();
+    
+    fs.writeFileSync(path.join(macAssetsDir, 'app-icon-glyph-light 2.png'), await renderMacGlyph(srcSvg, 1024));
+    fs.writeFileSync(path.join(macAssetsDir, 'app-icon-glyph-dark 4.png'), await renderMacGlyph(darkGlyphSvg, 1024));
+    console.log('[gen-icons] updated macOS AppIcon glyphs successfully.');
+  }
+
+  // === Web Icons Generation ===
+  const webPublicDir = path.resolve(__dirname, '../../web/public');
+  if (fs.existsSync(webPublicDir)) {
+    console.log('[gen-icons] generating web/public icons...');
+    
+    // SVG copies
+    fs.copyFileSync(srcPath, path.join(webPublicDir, 'favicon.svg'));
+    fs.copyFileSync(srcPath, path.join(webPublicDir, 'apple-touch-icon.svg'));
+    fs.copyFileSync(srcPath, path.join(webPublicDir, 'logo-dark-512x512.svg'));
+    fs.copyFileSync(srcPath, path.join(webPublicDir, 'logo-light-512x512.svg'));
+
+    // Helper for simple transparent resize (full size, no inner margin)
+    const renderFull = async (size) => sharp(Buffer.from(srcSvg)).resize(size, size, { fit: 'contain', background: transparent }).png().toBuffer();
+    // Helper for solid background (for Apple Touch & Maskable)
+    const renderSolid = async (size) => {
+      const inner = Math.round(size * MARGIN);
+      const mark = await sharp(Buffer.from(srcSvg)).resize(inner, inner, { fit: 'contain', background: transparent }).png().toBuffer();
+      return sharp({ create: { width: size, height: size, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 1 } } })
+        .composite([{ input: mark }])
+        .png().toBuffer();
+    };
+
+    // Favicons (transparent)
+    fs.writeFileSync(path.join(webPublicDir, 'favicon-16.png'), await renderFull(16));
+    fs.writeFileSync(path.join(webPublicDir, 'favicon-32.png'), await renderFull(32));
+    fs.writeFileSync(path.join(webPublicDir, 'favicon.png'), await renderFull(32)); // default fallback
+
+    // PWA (transparent)
+    fs.writeFileSync(path.join(webPublicDir, 'pwa-192.png'), await renderFull(192));
+    fs.writeFileSync(path.join(webPublicDir, 'pwa-512.png'), await renderFull(512));
+    fs.writeFileSync(path.join(webPublicDir, 'logo-dark-192x192.png'), await renderFull(192));
+    fs.writeFileSync(path.join(webPublicDir, 'logo-light-192x192.png'), await renderFull(192));
+
+    // Apple Touch & Maskable (solid white bg)
+    fs.writeFileSync(path.join(webPublicDir, 'apple-touch-icon-120x120.png'), await renderSolid(120));
+    fs.writeFileSync(path.join(webPublicDir, 'apple-touch-icon-152x152.png'), await renderSolid(152));
+    fs.writeFileSync(path.join(webPublicDir, 'apple-touch-icon-167x167.png'), await renderSolid(167));
+    fs.writeFileSync(path.join(webPublicDir, 'apple-touch-icon-180x180.png'), await renderSolid(180));
+    fs.writeFileSync(path.join(webPublicDir, 'apple-touch-icon.png'), await renderSolid(180));
+    
+    fs.writeFileSync(path.join(webPublicDir, 'pwa-maskable-192.png'), await renderSolid(192));
+    fs.writeFileSync(path.join(webPublicDir, 'pwa-maskable-512.png'), await renderSolid(512));
+    
+    console.log('[gen-icons] updated web/public icons successfully.');
+  }
+
   console.log('[gen-icons] note: macOS .icns is generated separately by generate-macos-icon-assets.cjs (mac builds only).');
 };
 

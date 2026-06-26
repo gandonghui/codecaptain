@@ -1,4 +1,4 @@
-## [1.13.3] - 2026-06-24
+## [0.1.0] - 2026-06-24
 
 - Chat: selecting a user-installed skill from the slash command menu now invokes the skill instead of inserting the skill name as plain text (thanks to @IbrahimKhan12).
 - Chat: pasted text containing `@` no longer opens file mention autocomplete unexpectedly (thanks to @charpeni).

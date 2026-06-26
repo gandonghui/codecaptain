@@ -67,6 +67,7 @@ const OPENCHAMBER_RULES = [
   [/dev\.openchamber\.desktop/g, 'dev.codecaptain.desktop'],
   [/OpenChamber/g, 'CodeCaptain'],
   [/openchamber/g, 'codecaptain'],
+  [/1\.13\.3/g, '0.1.0'],
 ];
 
 // opencode -> CodeCaptain-core (DISPLAY ONLY). The PascalCase brand token only.

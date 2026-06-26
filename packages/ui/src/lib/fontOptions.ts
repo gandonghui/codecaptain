@@ -166,7 +166,7 @@ const buildFontMap = <T extends string>(options: FontOptionDefinition<T>[]) =>
 export const UI_FONT_OPTION_MAP = buildFontMap(UI_FONT_OPTIONS);
 export const CODE_FONT_OPTION_MAP = buildFontMap(CODE_FONT_OPTIONS);
 
-export const DEFAULT_UI_FONT: UiFontOption = 'ibm-plex-sans';
+export const DEFAULT_UI_FONT: UiFontOption = 'inter';
 export const DEFAULT_MONO_FONT: MonoFontOption = 'ibm-plex-mono';
 
 export const isUiFontOption = (value: unknown): value is UiFontOption =>
