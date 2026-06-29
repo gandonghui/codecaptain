@@ -1,7 +1,6 @@
 import React from 'react';
 import { ScrollableOverlay } from '@/components/ui/ScrollableOverlay';
 import { ProviderLogo } from '@/components/ui/ProviderLogo';
-import { Button } from '@/components/ui/button';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { cn } from '@/lib/utils';
@@ -10,8 +9,7 @@ import { Icon } from "@/components/icon/Icon";
 import { opencodeClient } from '@/lib/opencode/client';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-
-const ADD_PROVIDER_ID = '__add_provider__';
+import { findLockedProvider } from './lockedProvider';
 
 interface ProviderSourceInfo {
   exists: boolean;
@@ -39,7 +37,12 @@ interface ProvidersSidebarProps {
 
 export const ProvidersSidebar: React.FC<ProvidersSidebarProps> = ({ onItemSelect }) => {
   const { t } = useI18n();
-  const providers = useConfigStore((state) => state.providers);
+  const allProviders = useConfigStore((state) => state.providers);
+  // Policy: only the single locked vendor is ever shown / selectable.
+  const providers = React.useMemo(() => {
+    const locked = findLockedProvider(allProviders);
+    return locked ? [locked] : [];
+  }, [allProviders]);
   const selectedProviderId = useConfigStore((state) => state.selectedProviderId);
   const setSelectedProvider = useConfigStore((state) => state.setSelectedProvider);
   const activeProjectId = useProjectsStore((s) => s.activeProjectId);
@@ -112,21 +115,11 @@ export const ProvidersSidebar: React.FC<ProvidersSidebarProps> = ({ onItemSelect
     <div className={cn('flex h-full flex-col', bgClass)}>
       <div className="border-b px-3 pt-4 pb-3">
         <h2 className="text-base font-semibold text-foreground mb-3">{t('settings.providers.sidebar.title')}</h2>
+      </div>
+      <div className="shrink-0 p-3 pt-0">
         <SettingsProjectSelector className="mb-3" />
         <div className="flex items-center justify-between gap-2">
           <span className="typography-meta text-muted-foreground">{t('settings.providers.sidebar.total', { count: providers.length })}</span>
-          <Button size="sm"
-            variant="ghost"
-            className="h-7 w-7 px-0 -my-1 text-muted-foreground"
-            onClick={() => {
-              setSelectedProvider(ADD_PROVIDER_ID);
-              onItemSelect?.();
-            }}
-            aria-label={t('settings.providers.sidebar.actions.connectProviderAria')}
-            title={t('settings.providers.sidebar.actions.connectProviderTitle')}
-          >
-            <Icon name="add" className="h-3.5 w-3.5" />
-          </Button>
         </div>
       </div>
 

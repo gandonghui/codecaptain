@@ -483,6 +483,28 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
       ? getManagedOpenCodeShellEnvSnapshot() || {}
       : {};
 
+    // NOTE: Do NOT inject the MedGateway key as a generic OPENAI_API_KEY here.
+    // MedGateway is a distinct, locked provider (see ui/src/lib/lockedProvider.ts)
+    // whose credential opencode-core already reads from auth.json under the
+    // "MedGateway" provider id. Exporting that key as OPENAI_API_KEY additionally
+    // authenticates the built-in "openai" provider inside opencode-core, which
+    // the UI-only lock cannot see. Subagents spawned by the `task` tool then
+    // resolve to openai/gpt-5.5 and call api.openai.com with the MedGateway key,
+    // producing "Incorrect API key provided: sk-..." failures. Leaving the
+    // openai provider unauthenticated forces every session AND subagent onto the
+    // only configured provider: MedGateway.
+    //
+    // Defense in depth: also strip any ambient OPENAI_API_KEY inherited from the
+    // shell or parent process, so the openai provider cannot be re-enabled (and
+    // the single-vendor lock bypassed) by an environment variable.
+    const managedOpenCodeEnv = {
+      ...shellEnv,
+      ...process.env,
+      PATH: envPath,
+      OPENCODE_SERVER_PASSWORD: openCodePassword,
+    };
+    delete managedOpenCodeEnv.OPENAI_API_KEY;
+
     try {
       const serverInstance = await createManagedOpenCodeServerProcess({
         hostname: env.ENV_CONFIGURED_OPENCODE_HOSTNAME,
@@ -490,12 +512,7 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
         timeout: 30000,
         cwd: state.openCodeWorkingDirectory,
         shellEnvKeysCount: Object.keys(shellEnv).length,
-        env: {
-          ...shellEnv,
-          ...process.env,
-          PATH: envPath,
-          OPENCODE_SERVER_PASSWORD: openCodePassword,
-        },
+        env: managedOpenCodeEnv,
       });
 
       if (!serverInstance || !serverInstance.url) {

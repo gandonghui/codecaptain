@@ -3,6 +3,7 @@ import type { StoreApi, UseBoundStore } from "zustand";
 import { devtools, persist, createJSONStorage } from "zustand/middleware";
 import type { Provider, Agent, Config } from "@opencode-ai/sdk/v2";
 import { opencodeClient } from "@/lib/opencode/client";
+import { filterLockedProviders, isLockedProvider } from "@/lib/lockedProvider";
 import { scopeMatches, subscribeToConfigChanges } from "@/lib/configSync";
 import type { ModelMetadata } from "@/types";
 import { getSafeStorage } from "./utils/safeStorage";
@@ -1529,8 +1530,15 @@ export const useConfigStore = create<ConfigStore>()(
                                 () => opencodeClient.getProvidersForConfig(fromDirectoryKey(directoryKey)),
                                 { directoryKey, source, requestedDirectory, effectiveDirectory, attempt: attempt + 1 },
                             );
-                            const providers = Array.isArray(apiResult?.providers) ? apiResult.providers : [];
-                            const defaults = apiResult?.default || {};
+                            // Company policy: lock the app to a single vendor. Drop every
+                            // other provider at ingestion so no other model is selectable
+                            // anywhere (settings, chat picker, agents, multi-run, etc.).
+                            const allProviders = Array.isArray(apiResult?.providers) ? (apiResult.providers as Provider[]) : [];
+                            const providers = filterLockedProviders(allProviders);
+                            const rawDefaults = (apiResult?.default as Record<string, string>) || {};
+                            const defaults = Object.fromEntries(
+                                Object.entries(rawDefaults).filter(([providerId]) => isLockedProvider({ id: providerId })),
+                            );
 
                             const processedProviders: ProviderWithModelList[] = providers.map((provider) => {
                                 const modelRecord = provider.models ?? {};

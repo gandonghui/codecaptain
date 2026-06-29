@@ -558,22 +558,10 @@ export const SETTINGS_SEARCH_ITEMS: readonly SettingsSearchItem[] = [
     keywords: ['markdown', 'prompt', 'template'],
   },
   {
-    id: 'providers.connect',
-    page: 'providers',
-    titleKey: 'settings.providers.page.connect.title',
-    keywords: ['add provider', 'connect provider', 'credentials'],
-  },
-  {
     id: 'providers.auth',
     page: 'providers',
     titleKey: 'settings.providers.page.auth.title',
-    keywords: ['api key', 'oauth', 'credentials'],
-  },
-  {
-    id: 'providers.connection-details',
-    page: 'providers',
-    titleKey: 'settings.providers.page.connectionDetails.title',
-    keywords: ['config', 'source', 'disconnect'],
+    keywords: ['api key', 'credentials'],
   },
   {
     id: 'providers.models',

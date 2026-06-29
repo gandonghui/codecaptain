@@ -8,7 +8,6 @@ import { useMcpConfigStore } from '@/stores/useMcpConfigStore';
 import { useSnippetsStore } from '@/stores/useSnippetsStore';
 import { useSkillsStore } from '@/stores/useSkillsStore';
 import { useSkillsCatalogStore } from '@/stores/useSkillsCatalogStore';
-import { useConfigStore } from '@/stores/useConfigStore';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { AgentsSidebar } from '@/components/sections/agents/AgentsSidebar';
@@ -107,7 +106,6 @@ const pageOrder: SettingsPageSlug[] = [
 ];
 
 const SNIPPETS_SETTINGS_ICON = { icon: 'chat-thread' } as const;
-const ADD_PROVIDER_SETTINGS_ID = '__add_provider__';
 
 function buildRuntimeContext(isDesktop: boolean, isMobile: boolean): SettingsRuntimeContext {
   const isVSCode = isVSCodeRuntime();
@@ -593,10 +591,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
       store.setSkillDraft({ name, scope: 'user', source: 'opencode', description: '', instructions: '' });
       store.setSelectedSkill(name);
       return result.id === 'skills.create' ? 'skills.basic-information' : result.id;
-    }
-
-    if (result.id === 'providers.connect') {
-      useConfigStore.getState().setSelectedProvider(ADD_PROVIDER_SETTINGS_ID);
     }
 
     if (result.id === 'plugins.create') {

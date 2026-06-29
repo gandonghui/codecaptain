@@ -1341,7 +1341,7 @@ runCliEntryIfMain({
   process,
   currentFilename: __filename,
   parseServeCliOptions,
-  defaultPort: DEFAULT_PORT,
+  defaultPort: process.env.CODECAPTAIN_PORT ? (parseInt(process.env.CODECAPTAIN_PORT, 10) || DEFAULT_PORT) : DEFAULT_PORT,
   cloudflareProvider: TUNNEL_PROVIDER_CLOUDFLARE,
   managedLocalMode: TUNNEL_MODE_MANAGED_LOCAL,
   setExitOnShutdown: (value) => {
