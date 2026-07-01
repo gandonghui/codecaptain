@@ -4,12 +4,11 @@ import { ProviderLogo } from '@/components/ui/ProviderLogo';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { cn } from '@/lib/utils';
-import { SettingsProjectSelector } from '@/components/sections/shared/SettingsProjectSelector';
 import { Icon } from "@/components/icon/Icon";
 import { opencodeClient } from '@/lib/opencode/client';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { findLockedProvider } from './lockedProvider';
+import { LOCKED_PROVIDER_ID, findLockedProvider } from './lockedProvider';
 
 interface ProviderSourceInfo {
   exists: boolean;
@@ -41,7 +40,10 @@ export const ProvidersSidebar: React.FC<ProvidersSidebarProps> = ({ onItemSelect
   // Policy: only the single locked vendor is ever shown / selectable.
   const providers = React.useMemo(() => {
     const locked = findLockedProvider(allProviders);
-    return locked ? [locked] : [];
+    if (locked) {
+      return [locked];
+    }
+    return [{ id: LOCKED_PROVIDER_ID, name: LOCKED_PROVIDER_ID, models: [] }];
   }, [allProviders]);
   const selectedProviderId = useConfigStore((state) => state.selectedProviderId);
   const setSelectedProvider = useConfigStore((state) => state.setSelectedProvider);
@@ -103,21 +105,12 @@ export const ProvidersSidebar: React.FC<ProvidersSidebarProps> = ({ onItemSelect
 
   const bgClass = 'bg-background';
 
-  const projectProviders = React.useMemo(() => {
-    return providers.filter((p) => Boolean(sourcesByProvider[p.id]?.project?.exists));
-  }, [providers, sourcesByProvider]);
-
-  const userProviders = React.useMemo(() => {
-    return providers.filter((p) => !sourcesByProvider[p.id]?.project?.exists);
-  }, [providers, sourcesByProvider]);
-
   return (
     <div className={cn('flex h-full flex-col', bgClass)}>
       <div className="border-b px-3 pt-4 pb-3">
         <h2 className="text-base font-semibold text-foreground mb-3">{t('settings.providers.sidebar.title')}</h2>
       </div>
       <div className="shrink-0 p-3 pt-0">
-        <SettingsProjectSelector className="mb-3" />
         <div className="flex items-center justify-between gap-2">
           <span className="typography-meta text-muted-foreground">{t('settings.providers.sidebar.total', { count: providers.length })}</span>
         </div>
@@ -132,43 +125,17 @@ export const ProvidersSidebar: React.FC<ProvidersSidebarProps> = ({ onItemSelect
           </div>
         ) : (
           <>
-            {userProviders.length > 0 && (
-              <>
-                <div className="px-2 pb-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('settings.providers.sidebar.section.userProviders')}
-                </div>
-                {userProviders.map((provider) => (
-                  <ProviderListItem
-                    key={provider.id}
-                    provider={provider}
-                    selectedProviderId={selectedProviderId}
-                    onSelect={() => {
-                      setSelectedProvider(provider.id);
-                      onItemSelect?.();
-                    }}
-                  />
-                ))}
-              </>
-            )}
-
-            {projectProviders.length > 0 && (
-              <>
-                <div className={cn('px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground', userProviders.length > 0 ? 'pt-3' : 'pt-2')}>
-                  {t('settings.providers.sidebar.section.projectProviders')}
-                </div>
-                {projectProviders.map((provider) => (
-                  <ProviderListItem
-                    key={provider.id}
-                    provider={provider}
-                    selectedProviderId={selectedProviderId}
-                    onSelect={() => {
-                      setSelectedProvider(provider.id);
-                      onItemSelect?.();
-                    }}
-                  />
-                ))}
-              </>
-            )}
+            {providers.map((provider) => (
+              <ProviderListItem
+                key={provider.id}
+                provider={provider}
+                selectedProviderId={selectedProviderId}
+                onSelect={() => {
+                  setSelectedProvider(provider.id);
+                  onItemSelect?.();
+                }}
+              />
+            ))}
           </>
         )}
       </ScrollableOverlay>

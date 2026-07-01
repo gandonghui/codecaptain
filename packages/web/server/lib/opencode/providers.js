@@ -90,7 +90,68 @@ function removeProviderConfig(providerId, workingDirectory, scope = 'user') {
   return true;
 }
 
+function updateProviderConfig(providerId, configUpdates, workingDirectory, scope = 'user') {
+  if (!providerId || typeof providerId !== 'string') {
+    throw new Error('Provider ID is required');
+  }
+
+  const layers = readConfigLayers(workingDirectory);
+  let targetPath = layers.paths.userPath;
+
+  if (scope === 'project') {
+    if (!workingDirectory) {
+      throw new Error('Working directory is required for project scope');
+    }
+    targetPath = layers.paths.projectPath || targetPath;
+  } else if (scope === 'custom') {
+    if (!layers.paths.customPath) {
+      throw new Error('Custom config path not available');
+    }
+    targetPath = layers.paths.customPath;
+  }
+
+  const targetConfig = getConfigForPath(layers, targetPath);
+  const providerConfig = isPlainObject(targetConfig.provider) ? targetConfig.provider : {};
+
+  // Initialize provider if missing
+  if (!isPlainObject(providerConfig[providerId])) {
+    providerConfig[providerId] = {};
+  }
+  const provider = providerConfig[providerId];
+
+  // Update options (e.g. baseURL)
+  let baseURLChanged = false;
+  if (configUpdates.baseURL) {
+    provider.options = isPlainObject(provider.options) ? provider.options : {};
+    if (provider.options.baseURL !== configUpdates.baseURL) {
+      baseURLChanged = true;
+    }
+    provider.options.baseURL = configUpdates.baseURL;
+  }
+
+  // Clear existing models if the base URL changed
+  if (baseURLChanged) {
+    provider.models = {};
+  }
+
+  // Update models
+  if (isPlainObject(configUpdates.models)) {
+    provider.models = isPlainObject(provider.models) ? provider.models : {};
+    for (const [modelId, modelDef] of Object.entries(configUpdates.models)) {
+      provider.models[modelId] = {
+        ...provider.models[modelId],
+        ...modelDef
+      };
+    }
+  }
+
+  targetConfig.provider = providerConfig;
+  writeConfig(targetConfig, targetPath || CONFIG_FILE);
+  return true;
+}
+
 export {
   getProviderSources,
   removeProviderConfig,
+  updateProviderConfig,
 };

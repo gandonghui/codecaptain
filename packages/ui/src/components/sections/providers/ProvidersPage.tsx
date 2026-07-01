@@ -14,6 +14,9 @@ import { cn } from '@/lib/utils';
 import type { ModelMetadata } from '@/types';
 import { getCurrentIntlLocale, useI18n } from '@/lib/i18n';
 import { opencodeClient } from '@/lib/opencode/client';
+import { runtimeFetch } from '@/lib/runtime-fetch';
+
+import { LOCKED_PROVIDER_ID, findLockedProvider } from './lockedProvider';
 
 const formatCompactNumber = (value: number) => new Intl.NumberFormat(getCurrentIntlLocale(), {
   notation: 'compact',
@@ -37,7 +40,14 @@ const formatTokens = (value?: number | null) => {
 
 export const ProvidersPage: React.FC = () => {
   const { t } = useI18n();
-  const providers = useConfigStore((state) => state.providers);
+  const allProviders = useConfigStore((state) => state.providers);
+  const providers = React.useMemo(() => {
+    const locked = findLockedProvider(allProviders);
+    if (locked) {
+      return [locked];
+    }
+    return [{ id: LOCKED_PROVIDER_ID, name: LOCKED_PROVIDER_ID, models: [] }];
+  }, [allProviders]);
   const selectedProviderId = useConfigStore((state) => state.selectedProviderId);
   const setSelectedProvider = useConfigStore((state) => state.setSelectedProvider);
   const getModelMetadata = useConfigStore((state) => state.getModelMetadata);
@@ -48,6 +58,8 @@ export const ProvidersPage: React.FC = () => {
 
   const [modelQuery, setModelQuery] = React.useState('');
   const [apiKeyInputs, setApiKeyInputs] = React.useState<Record<string, string>>({});
+  const [baseURLInputs, setBaseURLInputs] = React.useState<Record<string, string>>({});
+  const [customModelInputs, setCustomModelInputs] = React.useState<Record<string, string>>({});
   const [authBusyKey, setAuthBusyKey] = React.useState<string | null>(null);
   const [showAuthPanel, setShowAuthPanel] = React.useState(false);
 
@@ -60,9 +72,10 @@ export const ProvidersPage: React.FC = () => {
 
   const selectedProvider = providers.find((provider) => provider.id === selectedProviderId);
 
-  const handleSaveApiKey = async (providerId: string) => {
+  const handleSaveConfig = async (providerId: string) => {
     const apiKey = apiKeyInputs[providerId]?.trim() ?? '';
-    if (!apiKey) {
+    const baseURL = baseURLInputs[providerId]?.trim();
+    if (!apiKey && !baseURL) {
       toast.error(t('settings.providers.page.toast.apiKeyRequired'));
       return;
     }
@@ -71,26 +84,64 @@ export const ProvidersPage: React.FC = () => {
     setAuthBusyKey(busyKey);
 
     try {
-      const result = await opencodeClient.getSdkClient().auth.set({
-        providerID: providerId,
-        auth: { type: 'api', key: apiKey },
-      });
-      if (result.error) {
-        throw new Error(t('settings.providers.page.toast.apiKeySaveFailed'));
+      if (apiKey) {
+        const result = await opencodeClient.getSdkClient().auth.set({
+          providerID: providerId,
+          auth: { type: 'api', key: apiKey },
+        });
+        if (result.error) {
+          throw new Error(t('settings.providers.page.toast.apiKeySaveFailed'));
+        }
+      }
+
+      if (baseURL) {
+        const response = await runtimeFetch(`/api/provider/${encodeURIComponent(providerId)}/configure`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ baseURL, apiKey: apiKey || undefined }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to configure provider');
+        }
       }
 
       toast.success(t('settings.providers.page.toast.apiKeySaved'));
       setApiKeyInputs((prev) => ({ ...prev, [providerId]: '' }));
+      setBaseURLInputs((prev) => ({ ...prev, [providerId]: '' }));
       await reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" });
       setSelectedProvider(providerId);
     } catch (error) {
-      console.error('Failed to save API key:', error);
-      toast.error(t('settings.providers.page.toast.apiKeySaveFailed'));
+      console.error('Failed to save config:', error);
+      toast.error(error instanceof Error ? error.message : t('settings.providers.page.toast.apiKeySaveFailed'));
     } finally {
       setAuthBusyKey(null);
     }
   };
 
+  const handleAddCustomModel = async (providerId: string) => {
+    const input = customModelInputs[providerId]?.trim();
+    if (!input) return;
+    
+    const customModels = input.split(',').map(s => s.trim()).filter(Boolean);
+    if (customModels.length === 0) return;
+
+    try {
+      const response = await runtimeFetch(`/api/provider/${encodeURIComponent(providerId)}/configure`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customModels }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add custom models');
+      }
+      setCustomModelInputs((prev) => ({ ...prev, [providerId]: '' }));
+      await reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" });
+    } catch (error) {
+      console.error('Failed to add custom model:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to add custom model');
+    }
+  };
 
   if (providers.length === 0) {
     return (
@@ -165,6 +216,34 @@ export const ProvidersPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                <div className="py-1.5 mb-2">
+                  <label className="typography-ui-label text-foreground flex items-center gap-1.5">
+                    {t('settings.providers.page.auth.baseUrlLabel')}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Icon name="information" className="h-3.5 w-3.5 text-muted-foreground/60 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent sideOffset={8} className="max-w-xs">
+                        {t('settings.providers.page.auth.baseUrlTooltip')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1.5">
+                    <Input
+                      type="text"
+                      value={baseURLInputs[selectedProvider.id] ?? ''}
+                      onChange={(event) =>
+                        setBaseURLInputs((prev) => ({
+                          ...prev,
+                          [selectedProvider.id]: event.target.value,
+                        }))
+                      }
+                      placeholder={t('settings.providers.page.auth.baseUrlPlaceholder')}
+                      className="flex-1 font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
                 <div className="py-1.5">
                   <label className="typography-ui-label text-foreground flex items-center gap-1.5">
                     {t('settings.providers.page.auth.apiKeyLabel')}
@@ -193,10 +272,10 @@ export const ProvidersPage: React.FC = () => {
                     <Button
                       size="xs"
                       className="!font-normal shrink-0"
-                      onClick={() => handleSaveApiKey(selectedProvider.id)}
+                      onClick={() => handleSaveConfig(selectedProvider.id)}
                       disabled={authBusyKey === `api:${selectedProvider.id}`}
                     >
-                      {authBusyKey === `api:${selectedProvider.id}` ? t('settings.providers.page.actions.saving') : t('settings.providers.page.actions.saveKey')}
+                      {authBusyKey === `api:${selectedProvider.id}` ? t('settings.providers.page.actions.saving') : t('settings.providers.page.actions.saveConfig')}
                     </Button>
                   </div>
                 </div>
@@ -251,6 +330,25 @@ export const ProvidersPage: React.FC = () => {
                 placeholder={t('settings.providers.page.models.filterPlaceholder')}
                 className="h-7 pl-8 w-full"
               />
+            </div>
+
+            <div className="flex items-center gap-2 mb-4">
+              <Input
+                value={customModelInputs[selectedProvider.id] ?? ''}
+                onChange={(e) => setCustomModelInputs(prev => ({ ...prev, [selectedProvider.id]: e.target.value }))}
+                placeholder={t('settings.providers.page.models.addCustomModelPlaceholder')}
+                className="h-7 text-xs flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddCustomModel(selectedProvider.id);
+                }}
+              />
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={() => handleAddCustomModel(selectedProvider.id)}
+              >
+                {t('settings.providers.page.models.actions.addCustomModel')}
+              </Button>
             </div>
 
             {filteredModels.length === 0 ? (

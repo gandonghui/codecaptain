@@ -2,6 +2,7 @@ import { createProjectIdFromPath } from '../projects/project-id.js';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import express from 'express';
 
 export const registerOpenCodeRoutes = (app, dependencies) => {
   const {
@@ -17,6 +18,7 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     resolveProjectDirectory,
     getProviderSources,
     removeProviderConfig,
+    updateProviderConfig,
     refreshOpenCodeAfterConfigChange,
     buildOpenCodeUrl,
     getOpenCodeAuthHeaders,
@@ -371,6 +373,99 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     } catch (error) {
       console.error('Failed to get provider sources:', error);
       return res.status(500).json({ error: error.message || 'Failed to get provider sources' });
+    }
+  });
+  app.post('/api/provider/:providerId/configure', express.json(), async (req, res) => {
+    try {
+      const { providerId } = req.params;
+      const { baseURL, apiKey, customModels } = req.body || {};
+      
+      let effectiveApiKey = apiKey;
+      if (!effectiveApiKey) {
+        try {
+          const { getProviderAuth } = await getAuthLibrary();
+          effectiveApiKey = getProviderAuth(providerId);
+        } catch (authErr) {
+          // Ignore
+        }
+      }
+      
+      if (!providerId) {
+        return res.status(400).json({ error: 'Provider ID is required' });
+      }
+
+      let models = {};
+      if (baseURL) {
+        const normalizedBaseURL = baseURL.replace(/\/+$/, '');
+        const fetchModels = async (url) => {
+          const response = await fetch(url, {
+            headers: effectiveApiKey ? { Authorization: `Bearer ${effectiveApiKey}` } : {}
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to fetch models from ${url}: ${response.statusText}`);
+          }
+          return await response.json();
+        };
+
+        let data;
+        try {
+          data = await fetchModels(`${normalizedBaseURL}/v1/models`);
+        } catch (err) {
+          try {
+            data = await fetchModels(`${normalizedBaseURL}/models`);
+          } catch (err2) {
+            console.warn('Failed to fetch models from both endpoints. The provider may not support model discovery. Base URL will be saved anyway.', err, err2);
+            // Proceed without models
+          }
+        }
+
+        if (data && Array.isArray(data.data)) {
+          for (const model of data.data) {
+            if (model.id) {
+              models[model.id] = { id: model.id, name: model.id };
+            }
+          }
+        } else if (data && Array.isArray(data)) {
+          for (const model of data) {
+            if (model.id) {
+              models[model.id] = { id: model.id, name: model.id };
+            }
+          }
+        }
+      }
+      
+      if (Array.isArray(customModels)) {
+        for (const modelId of customModels) {
+          const mId = typeof modelId === 'string' ? modelId.trim() : '';
+          if (mId) {
+            models[mId] = { id: mId, name: mId };
+          }
+        }
+      }
+
+      let directory = null;
+      const resolved = await resolveProjectDirectory(req);
+      if (resolved.directory) {
+        directory = resolved.directory;
+      }
+
+      const configUpdates = {
+        baseURL: baseURL || undefined,
+        models: Object.keys(models).length > 0 ? models : undefined
+      };
+      
+      updateProviderConfig(providerId, configUpdates, directory, 'user');
+
+      await refreshOpenCodeAfterConfigChange(`provider ${providerId} configured`);
+
+      return res.json({
+        success: true,
+        modelsFetched: Object.keys(models).length,
+        requiresReload: true
+      });
+    } catch (error) {
+      console.error('Failed to configure provider:', error);
+      return res.status(500).json({ error: error.message || 'Failed to configure provider' });
     }
   });
 
