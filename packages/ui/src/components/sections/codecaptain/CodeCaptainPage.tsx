@@ -22,7 +22,12 @@ const useRuntimeEndpointEpoch = (): number => {
     const [epoch, setEpoch] = React.useState(0);
 
     React.useEffect(() => {
-        return subscribeRuntimeEndpointChanged(() => setEpoch((current) => current + 1));
+        return subscribeRuntimeEndpointChanged((detail) => {
+          if (detail.apiBaseUrl === detail.previousApiBaseUrl && detail.runtimeKey === detail.previousRuntimeKey) {
+            return;
+          }
+          setEpoch((current) => current + 1);
+        });
     }, []);
 
     return epoch;

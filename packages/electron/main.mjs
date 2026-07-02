@@ -14,8 +14,54 @@ import { ElectronSshManager } from './ssh-manager.mjs';
 import { createTrayController } from './tray.mjs';
 import { resolveManagedOpenCodeCwd } from './opencode-cwd.mjs';
 import { mintOutsideFileGrant } from '@codecaptain/web/server/lib/fs/routes.js';
-
 const execFileAsync = promisify(execFile);
+
+const getLarkPath = () => {
+  const binaryName = process.platform === 'win32' ? 'lark.exe' : 'lark';
+  let larkPath;
+  if (app.isPackaged) {
+    larkPath = path.join(process.resourcesPath, 'lark', binaryName);
+  } else {
+    larkPath = path.join(__dirname, 'resources', 'lark', binaryName);
+    if (!fs.existsSync(larkPath)) {
+      larkPath = path.join(__dirname, '..', 'resources', 'lark', binaryName);
+    }
+  }
+  return larkPath;
+};
+
+const executeLarkCli = async (args) => {
+  const larkPath = getLarkPath();
+  const extractJson = (text) => {
+    const match = text.match(/\{[\s\S]*\}/);
+    return match ? JSON.parse(match[0]) : null;
+  };
+
+  const env = { ...process.env, BROWSER: 'none' };
+  delete env.HERMES_HOME;
+  delete env.HERMES_APP_ID;
+
+  try {
+    const { stdout, stderr } = await execFileAsync(larkPath, args, { env });
+    if (!stdout.trim()) return null;
+    try {
+      return extractJson(stdout) || { output: stdout, error: stderr };
+    } catch (e) {
+      return { output: stdout, error: stderr };
+    }
+  } catch (err) {
+    console.error('Lark CLI error:', err);
+    try {
+      const outputToCheck = err.stdout || err.stderr || '';
+      if (outputToCheck) {
+        const parsed = extractJson(outputToCheck);
+        if (parsed) return parsed;
+      }
+    } catch (e) {}
+    throw new Error(`Lark CLI failed: ${err.message}`);
+  }
+};
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2073,6 +2119,19 @@ const createBrowserWindow = ({ label, restoreGeometry, url, runtimeConfig = {} }
         } catch {
         }
       }
+      if (isDev && process.env.VITE_DEV_SERVER_PORT) {
+        try {
+          if (`http://127.0.0.1:${process.env.VITE_DEV_SERVER_PORT}` === url.origin) return true;
+          if (`http://localhost:${process.env.VITE_DEV_SERVER_PORT}` === url.origin) return true;
+        } catch {
+        }
+      } else if (isDev) {
+        try {
+          if (url.origin === 'http://127.0.0.1:5173') return true;
+          if (url.origin === 'http://localhost:5173') return true;
+        } catch {
+        }
+      }
       if (state.sidecarUrl) {
         try {
           if (new URL(state.sidecarUrl).origin === url.origin) return true;
@@ -2102,7 +2161,9 @@ const createBrowserWindow = ({ label, restoreGeometry, url, runtimeConfig = {} }
   });
 
   browserWindow.webContents.on('will-navigate', (event, url) => {
+    console.log('[DEBUG] will-navigate:', url, 'localOrigin:', state.localOrigin);
     if (isAllowedNavigationUrl(url)) return;
+    console.log('[DEBUG] will-navigate DENIED, opening external');
     event.preventDefault();
     void shell.openExternal(url).catch(() => {});
   });
@@ -3460,6 +3521,28 @@ const handleInvoke = async (browserWindow, command, args = {}) => {
         trustDevice: args.trustDevice === true,
       });
 
+    case 'desktop_lark_status':
+      return executeLarkCli(['auth', 'status', '--json']);
+
+    case 'desktop_lark_login': {
+      const res = await executeLarkCli(['auth', 'login', '--recommend', '--no-wait', '--json']);
+      if (res && res.verification_url) {
+        res.verification_uri_complete = res.verification_url;
+        const match = res.verification_url.match(/user_code=([^&]+)/);
+        if (match) res.user_code = match[1];
+      }
+      return res;
+    }
+
+    case 'desktop_lark_poll_login':
+      return executeLarkCli(['auth', 'login', '--device-code', String(args.deviceCode), '--json']);
+
+    case 'desktop_lark_whoami':
+      return executeLarkCli(['whoami']);
+
+    case 'desktop_lark_logout':
+      return executeLarkCli(['auth', 'logout', '--json']);
+
     case 'desktop_set_window_theme': {
       const mode = typeof args.themeMode === 'string' ? args.themeMode : '';
       const variant = typeof args.themeVariant === 'string' ? args.themeVariant : '';
@@ -4067,6 +4150,12 @@ const isLocalSender = (webContents) => {
     const url = new URL(raw);
     if (url.protocol === `${UI_PROTOCOL}:` && url.hostname === 'app') return true;
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    if (isDev) {
+      const hmrUiPort = process.env.CODECAPTAIN_HMR_UI_PORT || '5173';
+      if (url.origin === `http://127.0.0.1:${hmrUiPort}` || url.origin === `http://localhost:${hmrUiPort}`) {
+        return true;
+      }
+    }
     if (state.localOrigin) {
       try {
         const allowed = new URL(state.localOrigin);
@@ -4104,6 +4193,10 @@ const COMMANDS_SAFE_FOR_REMOTE = new Set([
   'desktop_get_lan_address',
   'desktop_capture_page_rect',
   'desktop_tray_update',
+  'desktop_lark_status',
+  'desktop_lark_login',
+  'desktop_lark_poll_login',
+  'desktop_lark_whoami',
 ]);
 
 ipcMain.handle('codecaptain:invoke', async (event, command, args) => {

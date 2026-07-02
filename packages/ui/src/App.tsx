@@ -39,7 +39,6 @@ import { runtimeFetch } from '@/lib/runtime-fetch';
 import { subscribeRuntimeEndpointChanged } from '@/lib/runtime-switch';
 import { SyncProvider } from '@/sync/sync-context';
 import { useSync } from '@/sync/use-sync';
-import { ConfigUpdateOverlay } from '@/components/ui/ConfigUpdateOverlay';
 import { AboutDialog } from '@/components/ui/AboutDialog';
 import { RuntimeAPIProvider } from '@/contexts/RuntimeAPIProvider';
 import { registerRuntimeAPIs } from '@/contexts/runtimeAPIRegistry';
@@ -266,6 +265,9 @@ function App({ apis }: AppProps) {
 
   React.useEffect(() => {
     return subscribeRuntimeEndpointChanged((detail) => {
+      if (detail.apiBaseUrl === detail.previousApiBaseUrl && detail.runtimeKey === detail.previousRuntimeKey) {
+        return;
+      }
       useSessionUIStore.getState().prepareForRuntimeSwitch(detail.previousRuntimeKey);
       useUIStore.getState().prepareForRuntimeSwitch(detail.previousRuntimeKey);
       disposeTerminalInputTransport();
@@ -938,7 +940,6 @@ function App({ apis }: AppProps) {
                   <Toaster />
                   {!isBootShell && (
                     <>
-                      <ConfigUpdateOverlay />
                       <AboutDialogWrapper />
                       {showMemoryDebug && (
                         <MemoryDebugPanel onClose={() => setShowMemoryDebug(false)} />

@@ -1,6 +1,6 @@
 {
   "name": "codecaptain-monorepo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CodeCaptain monorepo workspace for web, ui, and desktop runtimes",
   "private": true,
   "type": "module",
@@ -155,6 +155,7 @@
     "tw-animate-css": "^1.3.8",
     "typescript": "~5.9.0",
     "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "@types/bun": "latest"
   }
 }

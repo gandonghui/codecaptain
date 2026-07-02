@@ -288,6 +288,110 @@ describe('runtimeFetch transport contract', () => {
   });
 });
 
+describe('runtimeFetch default timeout', () => {
+  test('attaches a default timeout signal to a normal SDK request (e.g. auth.set)', async () => {
+    const previous = getRuntimeUrlResolver();
+    const originalWindow = globalThis.window;
+    let captured: Request | null = null;
+
+    try {
+      configureRuntimeUrlResolver({});
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { location: { origin: 'https://app.example', href: 'https://app.example/' } },
+      });
+      globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        captured = input instanceof Request ? input : new Request(input, init);
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }) as typeof fetch;
+
+      // SDK-style: a Request with no caller-managed signal (the Request carries a
+      // default, never-aborting signal). runtimeFetch must swap in a timeout signal
+      // so the request cannot hang forever.
+      const req = new Request('https://app.example/api/auth/anthropic', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'api', key: 'secret' }),
+      });
+      const defaultSignal = req.signal;
+
+      await runtimeFetch(req);
+
+      expect(captured).not.toBeNull();
+      expect(captured!.signal).toBeInstanceOf(AbortSignal);
+      // A distinct signal was installed (the default was replaced/combined).
+      expect(captured!.signal).not.toBe(defaultSignal);
+      expect(captured!.signal.aborted).toBe(false);
+      // Body must survive the Request rebuild.
+      expect(await captured!.clone().text()).toBe(JSON.stringify({ type: 'api', key: 'secret' }));
+    } finally {
+      setRuntimeUrlResolver(previous);
+      Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });
+      globalThis.fetch = originalFetch;
+      clearRuntimeAuthCredentialProvider();
+    }
+  });
+
+  test('does NOT force a timeout onto long-running generation endpoints', async () => {
+    const previous = getRuntimeUrlResolver();
+    const originalWindow = globalThis.window;
+    const controller = new AbortController();
+    let captured: Request | null = null;
+
+    try {
+      configureRuntimeUrlResolver({});
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { location: { origin: 'https://app.example', href: 'https://app.example/' } },
+      });
+      globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        captured = input instanceof Request ? input : new Request(input, init);
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } });
+      }) as typeof fetch;
+
+      const req = new Request('https://app.example/api/session/abc/message', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ parts: [] }),
+        signal: controller.signal,
+      });
+
+      await runtimeFetch(req);
+
+      // The caller's own signal is preserved untouched — no default timeout wraps it.
+      expect(captured).not.toBeNull();
+      expect(captured!.signal).toBe(controller.signal);
+    } finally {
+      setRuntimeUrlResolver(previous);
+      Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });
+      globalThis.fetch = originalFetch;
+      clearRuntimeAuthCredentialProvider();
+    }
+  });
+
+  test('respects a caller-provided signal instead of adding its own', async () => {
+    const previous = getRuntimeUrlResolver();
+    const controller = new AbortController();
+    let capturedSignal: AbortSignal | null | undefined;
+
+    try {
+      configureRuntimeUrlResolver({ apiBaseUrl: 'https://runtime.example' });
+      globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        capturedSignal = init?.signal ?? (input instanceof Request ? input.signal : null);
+        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+      }) as typeof fetch;
+
+      await runtimeFetch('/api/config/providers', { signal: controller.signal });
+
+      expect(capturedSignal).toBe(controller.signal);
+    } finally {
+      setRuntimeUrlResolver(previous);
+      globalThis.fetch = originalFetch;
+      clearRuntimeAuthCredentialProvider();
+    }
+  });
+});
+
 describe('runtimeFetch read coalescing', () => {
   test('coalesces concurrent identical GET reads into one fetch', async () => {
     const previous = getRuntimeUrlResolver();

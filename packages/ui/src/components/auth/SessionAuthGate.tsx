@@ -1,4 +1,5 @@
 import React from 'react';
+import QRCode from 'qrcode';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -270,7 +271,7 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
   const { t } = useI18n();
   const vscodeRuntime = React.useMemo(() => isVSCodeRuntime(), []);
   const skipAuth = vscodeRuntime;
-  const showHostSwitcher = React.useMemo(() => isDesktopShell() && !vscodeRuntime, [vscodeRuntime]);
+  const showHostSwitcher = false;
   const [state, setState] = React.useState<GateState>(() => (skipAuth ? 'authenticated' : 'pending'));
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -284,6 +285,71 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
   const [activePasskeyAction, setActivePasskeyAction] = React.useState<'auth' | 'register' | null>(null);
   const passwordInputRef = React.useRef<HTMLInputElement | null>(null);
   const hasResyncedRef = React.useRef(skipAuth);
+
+  const [larkLoginState, setLarkLoginState] = React.useState<'idle' | 'loading' | 'qrcode' | 'success'>('idle');
+  const [larkQrDataUrl, setLarkQrDataUrl] = React.useState('');
+  const [larkUserCode, setLarkUserCode] = React.useState('');
+  const [larkUserName, setLarkUserName] = React.useState('');
+
+  const handleLarkLogin = React.useCallback(async () => {
+    setLarkLoginState('loading');
+    setErrorMessage('');
+    try {
+      const res = await invokeDesktop<{
+        device_code: string;
+        verification_uri_complete: string;
+        user_code: string;
+        expires_in: number;
+      }>('desktop_lark_login');
+      
+      if (!res || !res.device_code) {
+        throw new Error('Invalid response from Lark CLI');
+      }
+
+      setLarkUserCode(res.user_code);
+      const qrDataUrl = await QRCode.toDataURL(res.verification_uri_complete, { width: 200, margin: 1 });
+      setLarkQrDataUrl(qrDataUrl);
+      setLarkLoginState('qrcode');
+
+      const pollInterval = 2000;
+      const maxRetries = Math.floor(res.expires_in / (pollInterval / 1000));
+      let retries = 0;
+
+      const poll = async () => {
+        if (retries >= maxRetries) {
+          setErrorMessage('登录超时，请重试');
+          setLarkLoginState('idle');
+          return;
+        }
+        retries++;
+        try {
+          const pollRes = await invokeDesktop<{ error?: string }>('desktop_lark_poll_login', { deviceCode: res.device_code });
+          if (pollRes && !pollRes.error) {
+             const whoami = await invokeDesktop<{ onBehalfOf?: { userName?: string } }>('desktop_lark_whoami');
+             if (whoami?.onBehalfOf?.userName) {
+               setLarkUserName(whoami.onBehalfOf.userName);
+             }
+             setLarkLoginState('success');
+             
+             setTimeout(async () => {
+               const clientToken = await issueDesktopClientToken().catch(() => '');
+               if (clientToken) await applyDesktopClientToken(clientToken);
+               setState('authenticated');
+             }, 1500);
+             return;
+          }
+        } catch (e) {
+          // ignore pending error
+        }
+        setTimeout(poll, pollInterval);
+      };
+      setTimeout(poll, pollInterval);
+
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? e.message : String(e));
+      setLarkLoginState('idle');
+    }
+  }, []);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') {
@@ -344,6 +410,27 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
     }
 
     setState((prev) => (prev === 'authenticated' ? prev : 'pending'));
+
+    if (isDesktopShell()) {
+      try {
+        const larkStatus = await invokeDesktop<any>('desktop_lark_status');
+        if (larkStatus?.identity === 'user' && larkStatus?.identities?.user?.tokenStatus === 'valid') {
+           const clientToken = await issueDesktopClientToken().catch(() => '');
+           if (clientToken) await applyDesktopClientToken(clientToken);
+           setState('authenticated');
+           return;
+        } else {
+           // Lark not logged in, force lock screen to show Lark login UI
+           setState('locked');
+           return;
+        }
+      } catch (err) {
+        console.warn('Failed to check Lark status', err);
+        setState('locked');
+        return;
+      }
+    }
+
     try {
       const [response, latestPasskeyStatus] = await Promise.all([
         fetchSessionStatus(),
@@ -410,7 +497,10 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
       return;
     }
 
-    return subscribeRuntimeEndpointChanged(() => {
+    return subscribeRuntimeEndpointChanged((detail) => {
+      if (detail.apiBaseUrl === detail.previousApiBaseUrl && detail.runtimeKey === detail.previousRuntimeKey) {
+        return;
+      }
       setPassword('');
       setErrorMessage('');
       setRetryAfter(undefined);
@@ -676,105 +766,39 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
           </div>
 
           {!isTunnelLocked && (
-            <form onSubmit={handleSubmit} className="w-full space-y-2">
-              {canUsePasskey && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => void handlePasskeyUnlock()}
-                  disabled={isSubmitting || (isPasskeyBusy && activePasskeyAction !== 'auth')}
-                >
-                  {isPasskeyBusy ? (
-                    <Icon name="loader-4" className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Icon name="lock-unlock" className="h-4 w-4" />
-                  )}
-                  <span>{isPasskeyBusy && activePasskeyAction === 'auth'
-                    ? t('sessionAuth.actions.cancelPasskey')
-                    : t('sessionAuth.actions.usePasskey')}</span>
+            <div className="w-full space-y-4">
+              {larkLoginState === 'idle' && (
+                <Button onClick={() => void handleLarkLogin()} className="w-full">
+                  <Icon name="lock-unlock" className="mr-2 h-4 w-4" />
+                  用飞书登录
                 </Button>
               )}
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Icon name="lock" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-                  <Input
-                    id="codecaptain-ui-password"
-                    ref={passwordInputRef}
-                    type="password"
-                    autoComplete="current-password"
-                    placeholder={t('sessionAuth.password.placeholder')}
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                      if (errorMessage) {
-                        setErrorMessage('');
-                      }
-                    }}
-                    className="pl-10"
-                    aria-invalid={Boolean(errorMessage) || undefined}
-                    aria-describedby={errorMessage ? 'oc-ui-auth-error' : undefined}
-                    disabled={isSubmitting}
-                  />
+              {larkLoginState === 'loading' && (
+                <div className="flex justify-center p-4">
+                  <Icon name="loader-4" className="h-6 w-6 animate-spin" />
                 </div>
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={!password || isSubmitting}
-                  aria-label={isSubmitting ? t('sessionAuth.actions.unlockingAria') : t('sessionAuth.actions.unlockAria')}
-                >
-                  {isSubmitting ? (
-                    <Icon name="loader-4" className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Icon name="lock-unlock" className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {canOfferPasskeySetup ? (
-                <div className="flex items-center justify-between pt-1">
-                  <label className="flex items-center gap-2 text-center typography-micro text-muted-foreground">
-                    <Checkbox
-                      checked={trustDevice}
-                      onChange={setTrustDevice}
-                      disabled={isSubmitting}
-                      ariaLabel={t('sessionAuth.actions.trustDeviceAria')}
-                      className="size-4"
-                      iconClassName="size-4"
-                    />
-                    <span>{t('sessionAuth.actions.trustDevice')}</span>
-                  </label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => void handlePasskeySetupOnly()}
-                    disabled={isSubmitting}
-                  >
-                    {isPasskeyBusy && activePasskeyAction === 'register'
-                      ? t('sessionAuth.actions.cancelPasskeySetup')
-                      : t('sessionAuth.actions.addPasskey')}
-                  </Button>
+              )}
+              {larkLoginState === 'qrcode' && (
+                <div className="flex flex-col items-center gap-4 bg-card rounded-xl p-4 border shadow-sm">
+                  <img src={larkQrDataUrl} alt="Lark QR Code" className="w-48 h-48 rounded-md" />
+                  <div className="text-center space-y-1">
+                    <p className="typography-meta text-muted-foreground">请使用飞书扫码登录</p>
+                    <p className="typography-meta font-mono font-medium">{larkUserCode}</p>
+                  </div>
                 </div>
-              ) : (
-                <label className="flex items-center justify-center gap-2 pt-1 text-center typography-micro text-muted-foreground">
-                  <Checkbox
-                    checked={trustDevice}
-                    onChange={setTrustDevice}
-                    disabled={isSubmitting}
-                    ariaLabel={t('sessionAuth.actions.trustDeviceAria')}
-                    className="size-4"
-                    iconClassName="size-4"
-                  />
-                  <span>{t('sessionAuth.actions.trustDevice')}</span>
-                </label>
+              )}
+              {larkLoginState === 'success' && (
+                <div className="flex flex-col items-center gap-2 p-4 text-green-600">
+                  <Icon name="checkbox-circle" className="h-8 w-8" />
+                  <p className="font-medium">已登录为 {larkUserName}</p>
+                </div>
               )}
               {errorMessage && (
-                <p id="oc-ui-auth-error" className="typography-meta text-destructive">
+                <p id="oc-ui-auth-error" className="text-center typography-meta text-destructive">
                   {errorMessage}
                 </p>
               )}
-            </form>
+            </div>
           )}
 
           {showHostSwitcher && (

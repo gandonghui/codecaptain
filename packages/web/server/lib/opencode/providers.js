@@ -134,14 +134,41 @@ function updateProviderConfig(providerId, configUpdates, workingDirectory, scope
     provider.models = {};
   }
 
-  // Update models
+  // Update models and apply to subagents
   if (isPlainObject(configUpdates.models)) {
     provider.models = isPlainObject(provider.models) ? provider.models : {};
+    let firstModelId = null;
+    
     for (const [modelId, modelDef] of Object.entries(configUpdates.models)) {
+      if (!firstModelId) firstModelId = modelId;
       provider.models[modelId] = {
         ...provider.models[modelId],
         ...modelDef
       };
+    }
+
+    // Automatically update the global model and the subagent "table" 
+    // so oh-my-openagent uses the newly configured model by default.
+    if (firstModelId) {
+      const fullModelString = `${providerId}/${firstModelId}`;
+      targetConfig.model = fullModelString;
+      
+      if (!isPlainObject(targetConfig.agent)) {
+        targetConfig.agent = {};
+      }
+      
+      const subagents = [
+        'sisyphus', 'sisyphus-junior', 'atlas', 'metis', 'momus', 
+        'prometheus', 'oracle', 'librarian', 'explore', 'general', 
+        'build', 'plan'
+      ];
+      
+      for (const agentName of subagents) {
+        if (!isPlainObject(targetConfig.agent[agentName])) {
+          targetConfig.agent[agentName] = {};
+        }
+        targetConfig.agent[agentName].model = fullModelString;
+      }
     }
   }
 

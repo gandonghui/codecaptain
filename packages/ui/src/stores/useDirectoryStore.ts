@@ -443,7 +443,10 @@ if (typeof window !== 'undefined') {
   // Host switches happen in place (no page reload), so the home directory
   // must be re-resolved from the new runtime's authoritative source instead
   // of keeping the previous host's value cached.
-  subscribeRuntimeEndpointChanged(() => {
+  subscribeRuntimeEndpointChanged((detail) => {
+    if (detail.apiBaseUrl === detail.previousApiBaseUrl && detail.runtimeKey === detail.previousRuntimeKey) {
+      return;
+    }
     cachedHomeDirectory = null;
     const generation = ++homeResolveGeneration;
     initializeHomeDirectory().then((home) => {

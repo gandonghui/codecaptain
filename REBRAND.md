@@ -53,3 +53,6 @@ bun run electron:build
 - 绝大多数定制是**纯文本规则**或**资源生成**，跟着脚本走，几乎不与上游冲突。
 - 会与上游产生冲突的手工改动只有两处：`CodeCaptainLogo.tsx`（logo 组件，是我们的品牌内容，保留我方版本即可）和极少量 .tsx 界面文字规则（在 rebrand 脚本里集中维护）。
 - 不要手工散改品牌字符串——一律通过 `rebrand.mjs` 的规则，保证可重复、不丢失。
+
+bun run electron:dev
+bun run electron:build

@@ -5,7 +5,6 @@ import { RuntimeAPIProvider } from '@/contexts/RuntimeAPIProvider';
 import { registerRuntimeAPIs } from '@/contexts/runtimeAPIRegistry';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
-import { ConfigUpdateOverlay } from '@/components/ui/ConfigUpdateOverlay';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { VSCodeLayout } from '@/components/layout/VSCodeLayout';
 import { usePushVisibilityBeacon } from '@/hooks/usePushVisibilityBeacon';
@@ -126,7 +125,6 @@ export function VSCodeApp({ apis }: VSCodeAppProps) {
                 <SyncAppEffects embeddedBackgroundWorkEnabled={true} />
                 <VSCodeLayout />
                 <Toaster />
-                <ConfigUpdateOverlay />
               </div>
             </TooltipProvider>
           </FireworksProvider>

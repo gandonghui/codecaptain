@@ -395,45 +395,6 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
       }
 
       let models = {};
-      if (baseURL) {
-        const normalizedBaseURL = baseURL.replace(/\/+$/, '');
-        const fetchModels = async (url) => {
-          const response = await fetch(url, {
-            headers: effectiveApiKey ? { Authorization: `Bearer ${effectiveApiKey}` } : {}
-          });
-          if (!response.ok) {
-            throw new Error(`Failed to fetch models from ${url}: ${response.statusText}`);
-          }
-          return await response.json();
-        };
-
-        let data;
-        try {
-          data = await fetchModels(`${normalizedBaseURL}/v1/models`);
-        } catch (err) {
-          try {
-            data = await fetchModels(`${normalizedBaseURL}/models`);
-          } catch (err2) {
-            console.warn('Failed to fetch models from both endpoints. The provider may not support model discovery. Base URL will be saved anyway.', err, err2);
-            // Proceed without models
-          }
-        }
-
-        if (data && Array.isArray(data.data)) {
-          for (const model of data.data) {
-            if (model.id) {
-              models[model.id] = { id: model.id, name: model.id };
-            }
-          }
-        } else if (data && Array.isArray(data)) {
-          for (const model of data) {
-            if (model.id) {
-              models[model.id] = { id: model.id, name: model.id };
-            }
-          }
-        }
-      }
-      
       if (Array.isArray(customModels)) {
         for (const modelId of customModels) {
           const mId = typeof modelId === 'string' ? modelId.trim() : '';
@@ -456,13 +417,104 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
       
       updateProviderConfig(providerId, configUpdates, directory, 'user');
 
-      await refreshOpenCodeAfterConfigChange(`provider ${providerId} configured`);
+      if (baseURL) {
+        const normalizedBaseURL = baseURL.replace(/\/+$/, '');
+        
+        // Respond immediately, don't block the UI
+        res.json({
+          success: true,
+          modelsFetched: Object.keys(models).length,
+          requiresReload: true
+        });
 
-      return res.json({
+        // Background model fetch and processing
+        Promise.resolve().then(async () => {
+          const MODEL_DISCOVERY_TIMEOUT_MS = 8000;
+          const fetchModels = async (url) => {
+            const response = await fetch(url, {
+              headers: effectiveApiKey ? { Authorization: `Bearer ${effectiveApiKey}` } : {},
+              signal: AbortSignal.timeout(MODEL_DISCOVERY_TIMEOUT_MS)
+            });
+            if (!response.ok) {
+              throw new Error(`Failed to fetch models from ${url}: ${response.statusText}`);
+            }
+            return await response.json();
+          };
+
+          const isUnreachable = (err) =>
+            err && (err.name === 'TimeoutError' || err.name === 'AbortError' ||
+              err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || err.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+              err.cause?.code === 'ECONNREFUSED' || err.cause?.code === 'ENOTFOUND' || err.cause?.code === 'UND_ERR_CONNECT_TIMEOUT');
+
+          let data;
+          try {
+            data = await fetchModels(`${normalizedBaseURL}/v1/models`);
+          } catch (err) {
+            if (isUnreachable(err)) {
+              console.warn('Model discovery endpoint unreachable; saving base URL without auto-discovered models.', err?.message || err);
+            } else {
+              try {
+                data = await fetchModels(`${normalizedBaseURL}/models`);
+              } catch (err2) {
+                console.warn('Failed to fetch models from both endpoints. The provider may not support model discovery. Base URL will be saved anyway.', err, err2);
+              }
+            }
+          }
+
+          let hasDiscoveredModels = false;
+          let discoveredModels = { ...models };
+
+          const processModelList = async (list) => {
+            for (let i = 0; i < list.length; i++) {
+              const model = list[i];
+              if (model && model.id) {
+                discoveredModels[model.id] = { id: model.id, name: model.id };
+                hasDiscoveredModels = true;
+              }
+              // Yield to event loop to avoid single loop blocking mechanism
+              if (i % 1000 === 0) {
+                await new Promise(resolve => setImmediate(resolve));
+              }
+            }
+          };
+
+          if (data && Array.isArray(data.data)) {
+            await processModelList(data.data);
+          } else if (data && Array.isArray(data)) {
+            await processModelList(data);
+          }
+
+          if (hasDiscoveredModels) {
+            updateProviderConfig(providerId, { baseURL: baseURL || undefined, models: discoveredModels }, directory, 'user');
+          }
+
+          await refreshOpenCodeAfterConfigChange(`provider ${providerId} configured`);
+        }).catch((refreshErr) => {
+          console.warn(
+            `[configure] background model discovery/refresh failed for ${providerId}:`,
+            refreshErr?.message || refreshErr
+          );
+        });
+        
+        return;
+      }
+
+      // If no baseURL, just respond and refresh
+      res.json({
         success: true,
         modelsFetched: Object.keys(models).length,
         requiresReload: true
       });
+
+      Promise.resolve()
+        .then(() => refreshOpenCodeAfterConfigChange(`provider ${providerId} configured`))
+        .catch((refreshErr) => {
+          console.warn(
+            `[configure] background OpenCode refresh failed for ${providerId}:`,
+            refreshErr?.message || refreshErr
+          );
+        });
+      return;
     } catch (error) {
       console.error('Failed to configure provider:', error);
       return res.status(500).json({ error: error.message || 'Failed to configure provider' });
@@ -631,3 +683,4 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     }
   });
 };
+

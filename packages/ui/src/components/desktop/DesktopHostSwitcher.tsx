@@ -341,7 +341,12 @@ export function DesktopHostSwitcherDialog({
   }, [configHosts, localOrigin]);
 
   React.useEffect(() => {
-    return subscribeRuntimeEndpointChanged(() => setRuntimeEndpointEpoch((epoch) => epoch + 1));
+    return subscribeRuntimeEndpointChanged((detail) => {
+      if (detail.apiBaseUrl === detail.previousApiBaseUrl && detail.runtimeKey === detail.previousRuntimeKey) {
+        return;
+      }
+      setRuntimeEndpointEpoch((epoch) => epoch + 1);
+    });
   }, []);
 
   const current = React.useMemo(() => {

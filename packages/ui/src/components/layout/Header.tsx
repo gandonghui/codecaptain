@@ -254,6 +254,117 @@ const DesktopGitHubControl = React.memo(function DesktopGitHubControl({
   );
 });
 
+// Lark (飞书) is the primary sign-in identity for the desktop app. This control
+// reuses the header avatar slot previously used for GitHub accounts: it shows the
+// signed-in Lark user and offers a logout action that clears the Lark session and
+// returns to the login screen (handled by SessionAuthGate on reload).
+type LarkWhoami = {
+  identity?: string;
+  onBehalfOf?: { userName?: string; username?: string } | null;
+};
+
+const DesktopLarkUserControl = React.memo(function DesktopLarkUserControl({
+  isMobile,
+}: {
+  isMobile: boolean;
+}) {
+  const [userName, setUserName] = React.useState('');
+  const [identity, setIdentity] = React.useState('');
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isDesktopShell()) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const whoami = await invokeDesktop<LarkWhoami>('desktop_lark_whoami');
+        if (cancelled || !whoami) {
+          return;
+        }
+        const name = whoami.onBehalfOf?.userName || whoami.onBehalfOf?.username || '';
+        if (name) {
+          setUserName(name);
+        }
+        if (whoami.identity) {
+          setIdentity(whoami.identity);
+        }
+      } catch {
+        // Ignore: fall back to a generic account icon.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLogout = React.useCallback(async () => {
+    if (isLoggingOut) {
+      return;
+    }
+    setIsLoggingOut(true);
+    try {
+      await invokeDesktop('desktop_lark_logout');
+    } catch (error) {
+      console.warn('Failed to log out of Lark', error);
+    } finally {
+      // Reload to the root so SessionAuthGate re-checks Lark status and shows the login screen.
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    }
+  }, [isLoggingOut]);
+
+  if (!isDesktopShell() || isMobile) {
+    return null;
+  }
+
+  const initial = userName ? userName.trim().charAt(0).toUpperCase() : '';
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            DESKTOP_HEADER_ICON_BUTTON_CLASS,
+            'h-7 w-7 overflow-hidden rounded-full border border-border/60 bg-muted/80 p-0'
+          )}
+          title={userName ? `已登录为 ${userName}` : '账户'}
+        >
+          {initial ? (
+            <span className="typography-ui-label font-semibold text-foreground">{initial}</span>
+          ) : (
+            <Icon name="user-3" className="h-3.5 w-3.5 text-foreground" />
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="flex flex-col gap-0.5">
+          <span className="truncate typography-ui-header font-semibold text-foreground">
+            {userName || '未知用户'}
+          </span>
+          <span className="typography-micro font-normal text-muted-foreground">
+            {identity === 'user' ? '飞书账户' : identity || '飞书账户'}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={isLoggingOut}
+          onSelect={(event) => {
+            event.preventDefault();
+            void handleLogout();
+          }}
+        >
+          <Icon name="lock-unlock" className="mr-2 h-4 w-4" />
+          退出登录
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+});
+
 type DesktopServicesMenuProps = {
   isDesktopApp: boolean;
   currentInstanceLabel: string;
@@ -2094,15 +2205,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClick={toggleRightSidebar}
         Icon={'layout-right'}
       />
-      <DesktopGitHubControl
-        isMobile={isMobile}
-        githubAuthStatus={githubAuthStatus}
-        githubAccounts={githubAccounts}
-        githubAvatarUrl={githubAvatarUrl}
-        githubLogin={githubLogin}
-        isSwitchingGitHubAccount={isSwitchingGitHubAccount}
-        handleGitHubAccountSwitch={handleGitHubAccountSwitch}
-      />
+      <DesktopLarkUserControl isMobile={isMobile} />
     </>
   );
 

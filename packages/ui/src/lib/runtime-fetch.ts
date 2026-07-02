@@ -182,6 +182,59 @@ const resolveRuntimeFetchInput = (input: string | URL | Request, query?: Runtime
 const COALESCE_READ_PATH = /\/api\/(config|path|app\/agents|agent|project|command)(\b|\/|\?|$)/;
 const READ_COALESCE = new Map<string, Promise<Response>>();
 
+// ---------------------------------------------------------------------------
+// Default request timeout
+//
+// The runtime SDK client (createOpencodeClient) is wired to use runtimeFetch,
+// which delegates to the native fetch — and native fetch has NO timeout. So any
+// runtime request whose backend never responds (OpenCode stalled / unreachable /
+// mid-restart) hangs forever. Callers that await such a request then also hang;
+// e.g. the provider "save key" button awaits auth.set and, when it never
+// settles, stays stuck on "saving" permanently.
+//
+// To make hangs impossible at the source, every runtime request gets a default
+// timeout unless it is exempt:
+//   - The caller already passed its own signal (it manages its own lifetime).
+//   - It targets a long-running generation endpoint (synchronous prompt/command
+//     hold the HTTP request open until the model finishes — potentially minutes).
+//   - It is an event stream (SSE/WS live elsewhere, but guard defensively).
+// ---------------------------------------------------------------------------
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+
+// Endpoints that legitimately run far longer than a normal API call. Their real
+// output streams over the WebSocket event bus, but the HTTP request stays open
+// until the backend finishes, so they must never be force-aborted by the default.
+const LONG_RUNNING_PATH = /\/session\/[^/]+\/(message|prompt_async|command|summarize|shell)(\b|\/|\?|$)/;
+
+const shouldApplyDefaultTimeout = (url: string, callerManagesSignal: boolean): boolean => {
+  if (callerManagesSignal) return false;
+  if (url.includes('/event')) return false;
+  if (LONG_RUNNING_PATH.test(url)) return false;
+  return true;
+};
+
+// Combine an existing signal (if any) with a fresh timeout. The Request object
+// the SDK builds always carries a default (never-aborting) signal, so combining
+// is always safe: if the base signal is a real one it is preserved, otherwise
+// only the timeout can fire.
+const withTimeoutSignal = (base: AbortSignal | null | undefined, timeoutMs: number): AbortSignal => {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!base) return timeout;
+  if (typeof AbortSignal.any === 'function') return AbortSignal.any([base, timeout]);
+  // Fallback for runtimes without AbortSignal.any.
+  const controller = new AbortController();
+  const forward = (signal: AbortSignal): boolean => {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      return true;
+    }
+    signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true });
+    return false;
+  };
+  if (!forward(base)) forward(timeout);
+  return controller.signal;
+};
+
 const coalesceReadKey = (method: string, url: string, hasSignal: boolean): string | null => {
   if (hasSignal) return null;
   if (method !== 'GET') return null;
@@ -196,11 +249,6 @@ export const runtimeFetch = async (input: string | URL | Request, init: RuntimeF
   const inputHeaders = resolvedInput instanceof Request ? resolvedInput.headers : undefined;
   const headers = await mergeHeaders(inputHeaders, requestInit.headers, shouldAttachRuntimeAuth(resolvedInput));
 
-  const doFetch = (): Promise<Response> =>
-    resolvedInput instanceof Request
-      ? fetch(new Request(resolvedInput, { ...requestInit, headers }))
-      : fetch(resolvedInput, { ...requestInit, headers });
-
   const url =
     resolvedInput instanceof Request ? resolvedInput.url
     : resolvedInput instanceof URL ? resolvedInput.toString()
@@ -208,6 +256,27 @@ export const runtimeFetch = async (input: string | URL | Request, init: RuntimeF
   const method = String(
     requestInit.method ?? (resolvedInput instanceof Request ? resolvedInput.method : 'GET'),
   ).toUpperCase();
+
+  // Bound every request with a default timeout so no runtime call can hang
+  // forever (the SDK client uses this fetch and passes no signal of its own).
+  const callerManagesSignal = requestInit.signal != null;
+  const applyTimeout = shouldApplyDefaultTimeout(url, callerManagesSignal);
+
+  const doFetch = (): Promise<Response> => {
+    if (resolvedInput instanceof Request) {
+      const nextInit: RequestInit = { ...requestInit, headers };
+      if (applyTimeout) {
+        nextInit.signal = withTimeoutSignal(requestInit.signal ?? resolvedInput.signal, DEFAULT_REQUEST_TIMEOUT_MS);
+      }
+      return fetch(new Request(resolvedInput, nextInit));
+    }
+    const nextInit: RequestInit = { ...requestInit, headers };
+    if (applyTimeout) {
+      nextInit.signal = withTimeoutSignal(requestInit.signal, DEFAULT_REQUEST_TIMEOUT_MS);
+    }
+    return fetch(resolvedInput, nextInit);
+  };
+
   // A Request always carries a (possibly default) signal; treat any Request, or
   // an explicit init.signal, as "has signal" and skip coalescing for safety.
   const hasSignal = requestInit.signal != null || resolvedInput instanceof Request;

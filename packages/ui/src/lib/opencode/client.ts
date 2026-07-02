@@ -1542,7 +1542,11 @@ class OpencodeService {
         ? '/api/opencode/health'
         : `${normalizedBase}/opencode/health`;
       markStartupTrace('opencodeClient.checkHealth:url', { baseUrl: this.baseUrl, healthUrl });
-      const response = await runtimeFetch(healthUrl);
+      // Bound each readiness probe. This runs in a poll loop (waitForOpenCodeConnection)
+      // while OpenCode restarts; without a timeout a single probe that connects but never
+      // responds (seen on desktop during restart) hangs the loop forever, which in turn
+      // leaves the full-screen config-update overlay stuck and freezes the whole UI.
+      const response = await runtimeFetch(healthUrl, { signal: AbortSignal.timeout(5000) });
       markStartupTrace('opencodeClient.checkHealth:response', { status: response.status });
       if (!response.ok) {
         return false;

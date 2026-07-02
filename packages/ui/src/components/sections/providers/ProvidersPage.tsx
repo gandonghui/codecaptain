@@ -99,6 +99,8 @@ export const ProvidersPage: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ baseURL, apiKey: apiKey || undefined }),
+          // Safety net: never let the save request hang forever if the backend stalls.
+          signal: AbortSignal.timeout(20000),
         });
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
@@ -109,14 +111,21 @@ export const ProvidersPage: React.FC = () => {
       toast.success(t('settings.providers.page.toast.apiKeySaved'));
       setApiKeyInputs((prev) => ({ ...prev, [providerId]: '' }));
       setBaseURLInputs((prev) => ({ ...prev, [providerId]: '' }));
-      await reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" });
       setSelectedProvider(providerId);
     } catch (error) {
       console.error('Failed to save config:', error);
       toast.error(error instanceof Error ? error.message : t('settings.providers.page.toast.apiKeySaveFailed'));
     } finally {
+      // Clear the busy state as soon as the config is saved. The OpenCode reload
+      // below can legitimately take a while (or stall if the provider endpoint is
+      // unreachable); it must never keep the button stuck on "保存中".
       setAuthBusyKey(null);
     }
+
+    // Fire-and-forget: refresh models/config in the background without gating the button.
+    void reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" }).catch((error) => {
+      console.warn('Provider config reload after save failed (config already saved):', error);
+    });
   };
 
   const handleAddCustomModel = async (providerId: string) => {
@@ -131,16 +140,22 @@ export const ProvidersPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customModels }),
+        signal: AbortSignal.timeout(20000),
       });
       if (!response.ok) {
         throw new Error('Failed to add custom models');
       }
       setCustomModelInputs((prev) => ({ ...prev, [providerId]: '' }));
-      await reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" });
     } catch (error) {
       console.error('Failed to add custom model:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to add custom model');
+      return;
     }
+
+    // Fire-and-forget: don't block the UI on the OpenCode reload.
+    void reloadOpenCodeConfiguration({ scopes: ["providers"], mode: "active" }).catch((error) => {
+      console.warn('Provider config reload after adding custom model failed (models already saved):', error);
+    });
   };
 
   if (providers.length === 0) {
